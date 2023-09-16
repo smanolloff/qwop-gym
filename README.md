@@ -5,6 +5,8 @@ A Gym environment for Bennet Foddy's game called _QWOP_.
 [Give it a try](https://www.foddy.net/Athletics.html) and see why it's such a
 good candidate for Reinforcement Learning :)
 
+![banner](https://github.com/smanolloff/qwop-gym/assets/6965111/48ef4cb4-b533-4772-afc9-a0651cfd6daa)
+
 ## Getting started
 
 1. Install [Python](https://www.python.org/downloads/) 3.10
@@ -105,7 +107,7 @@ python qwop-gym.py train_bc
 ### W&B sweeps
 
 If you are a fan of [W&B sweeps](https://docs.wandb.ai/guides/sweeps), you can 
-use the provided configs in `config/wandb/` and start your sweeps like so:
+use the provided configs in `config/wandb/` and create your sweeps like so:
 
 ```bash
 # create a new W&B sweep
@@ -148,34 +150,34 @@ entirely through self-play, without pre-recorded expert demonstrations
 adding more to the list is simple - this makes it suitable for exploring and/or
 benchmarking a variety of RL algorithms
 * QWOP's original JS source code is barely modified: 99% of all extra
-functionality is designed as a plugin and bundled separately and only a "diff"
+functionality is designed as a plugin, bundled separately and only a "diff"
 of QWOP.min.js is published here (in respect to Benett Foddy's kind request
 to refrain from publishing the QWOP source code as parts of it are _not_
 open-source).
 
 ## Caveats
 
-The below list highlights some of the project's areas which could use
-some improvement:
+The below list highlights some areas in which the project could use some
+improvements:
 
 * connection errors with the websocket server are non-recoverable and terminate
-any running learning process
+any running learning process.
 * exception handling in `server.py`'s `_start()` method is flawed as the
-code simply hangs in case of a browser start error (eg. wrong path)
+code simply hangs in case of a browser start error (eg. wrong path).
 * the OS puts some pretty rough restrictions on the web browser's rendering as
 soon as it's put in the background (on OS X at least). Ideally, the browser
 should run in a headless mode, but I couldn't find a WebGL-compatible headless
 browser.
 * the log level is hard-coded in `log.py`; also, the logging facility itself
-is pretty basic and uses `print` statements
+is pretty basic and relies on simple `print` statements.
 * `gym` is deprecated since October 2022 and this project should be migrated to
 `gymnasium`. This will be possible once
-[this](https://github.com/HumanCompatibleAI/imitation/pull/735) blocker is out
-of the way.
+[this](https://github.com/HumanCompatibleAI/imitation/pull/735) blocker gets
+out of the way.
 * `wandb` uses a monkey-patch for collecting tensorboard logs which does not
 work well with GAIL/AIRL/BC (and possibly other algos from `imitation`). As a
-result, graphs in wandb have weird names
-
+result, graphs in wandb have weird names. This is mostly an issue with `wandb`
+and/or `imitation` libraries, however there may be a way to work around this.
 
 ## Contributing
 
