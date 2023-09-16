@@ -72,7 +72,7 @@ def create_vec_env(seed, max_episode_steps):
         env_kwargs={"seed": seed},
         monitor_kwargs={"info_keywords": common.INFO_KEYS},
         wrapper_class=TimeLimit,
-        wrapper_kwargs={"max_episode_steps": max_episode_steps}
+        wrapper_kwargs={"max_episode_steps": max_episode_steps},
     )
 
     return venv
@@ -115,7 +115,7 @@ def train_sb3(
                     save_freq=math.ceil(total_timesteps / n_checkpoints),
                     save_path=out_dir,
                     name_prefix="model",
-                )
+                ),
             ],
         )
 

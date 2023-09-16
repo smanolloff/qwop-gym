@@ -4,44 +4,44 @@ import os
 if __name__ == "__main__":
     replacements = [
         (
-            '!function()',
-            'function QWOP()',
+            "!function()",
+            "function QWOP()",
         ),
         (
-            'this.doneLoading=!0',
+            "this.doneLoading=!0",
             'this.doneLoading=!0,this.app.app.window.handle.dispatchEvent(new Event("doneLoading"))',
         ),
         (
-            '&&m.shutdown()',
-            '',
+            "&&m.shutdown()",
+            "",
         ),
         (
-            't.preprocess_sound_meta(t.pack.sounds),',
-            '',
+            "t.preprocess_sound_meta(t.pack.sounds),",
+            "",
         ),
         (
-            't.load(t.pack.sounds,s(t,t.create_sound)),',
-            '',
+            "t.load(t.pack.sounds,s(t,t.create_sound)),",
+            "",
         ),
         (
-            'o.Core.__super__=C.AppFixedTimestep',
-            'o.Core.__super__=C.App',
+            "o.Core.__super__=C.AppFixedTimestep",
+            "o.Core.__super__=C.App",
         ),
         (
-            'o.Core.prototype=t(C.AppFixedTimestep.prototype',
-            'o.Core.prototype=t(C.App.prototype',
+            "o.Core.prototype=t(C.AppFixedTimestep.prototype",
+            "o.Core.prototype=t(C.App.prototype",
         ),
         (
-            'this.request_update(),!0',
-            'this.__manual_mode||this.request_update(),!0',
+            "this.request_update(),!0",
+            "this.__manual_mode||this.request_update(),!0",
         ),
         (
-            'u.main()',
-            'u.main(),QWOP.__i=i',
+            "u.main()",
+            "u.main(),QWOP.__i=i",
         ),
         (
-            '}();',
-            '};',
+            "}();",
+            "};",
         ),
     ]
 
