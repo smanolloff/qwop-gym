@@ -1,0 +1,16 @@
+---
+fps: 90
+reset_delay: 1
+# model_file: "data/QRDQN-1gkmwsyp/model.zip"
+model_file: "data/QRDQN-zgg3ofy0/model.zip"
+model_mod: "sb3_contrib"
+model_cls: "QRDQN"
+env_kwargs:
+  __include__: "config/env.yml"
+  auto_draw: true
+  stat_in_browser: true
+  game_in_browser: true
+  text_in_browser: "AI is playing"
+env_wrappers:
+  - module: "src.env.v1.util.verbose_wrapper"
+    cls: "VerboseWrapper"

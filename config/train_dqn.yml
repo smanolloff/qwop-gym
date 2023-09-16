@@ -1,0 +1,30 @@
+---
+seed: ~  # auto-generated if blank
+run_id: ~  # auto-generated if blank
+out_dir_template: "data/DQN-{run_id}"
+log_tensorboard: true
+total_timesteps: 200000
+max_episode_steps: 5000
+n_checkpoints: 5
+learner_kwargs:
+  policy: "MlpPolicy"
+  buffer_size: 100000
+  learning_starts: 100000
+  batch_size: 64
+  tau: 1.0
+  gamma: 0.995
+  train_freq: 4
+  gradient_steps: 1
+  target_update_interval: 100000
+  exploration_fraction: 0.01
+  exploration_initial_eps: 1
+  exploration_final_eps: 0.01
+learner_lr_schedule:
+  fn: "const"
+  initial_value: 0.001
+  step: 0.75
+  decays: 15
+  min_value: 0.00001
+env_kwargs:
+  __include__: "config/env.yml"
+  text_in_browser: "Do not close this window, training in progress..."

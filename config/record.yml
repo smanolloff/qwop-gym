@@ -1,0 +1,15 @@
+---
+seed: ~  # auto-generated if blank
+run_id: ~  # auto-generated if blank
+fps: 30
+out_file_template: "data/recordings/recording-{run_id}.rec"
+env_kwargs:
+  __include__: "config/env.yml"
+  render_mode: "rgb_array"
+  r_for_terminate: true  # NOTE: "R"-terminated episodes are not recorded
+  stat_in_browser: true
+  game_in_browser: false
+  text_in_browser: "Your actions will be recorded"
+env_wrappers:
+  - module: "src.env.v1.util.verbose_wrapper"
+    cls: "VerboseWrapper"

@@ -1,0 +1,21 @@
+@startuml "Communication"
+
+!include <C4/C4_Container>
+!include <tupadr3/devicons/python>
+!include <tupadr3/devicons/chrome>
+!include <tupadr3/devicons/javascript>
+
+HIDE_STEREOTYPE()
+LAYOUT_LEFT_RIGHT()
+
+Person(agent, "Agent", "", $sprite="robot")
+System(env, "QwopEnv", "", $sprite="python")
+
+System(browser, "Web Browser", "QWOP.js", $sprite="chrome")
+
+Rel(agent, env, "step(action)")
+Rel(env, browser, "command")
+Rel(browser, env, "observation")
+Rel(env, agent, "observation, reward")
+
+@enduml

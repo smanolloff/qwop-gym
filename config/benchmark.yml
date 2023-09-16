@@ -1,0 +1,6 @@
+---
+steps: 100_000
+env_kwargs:
+  __include__: "config/env.yml"
+  game_in_browser: false
+  text_in_browser: "Performance testing in progress..."

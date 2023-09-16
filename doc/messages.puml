@@ -1,0 +1,9 @@
+@startuml
+
+skinparam componentStyle rectangle
+
+package "Communication packet" {
+  [Header\n1 byte] - [Payload\n(varies)]
+}
+
+@enduml

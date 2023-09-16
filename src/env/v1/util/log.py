@@ -1,0 +1,177 @@
+from .wsproto import WSProto
+import hashlib
+
+
+class Log:
+    # 0 = print ALL messages
+    # 1 = print a (short) version of ALL messages
+    # 2 = filter out in/outbound messages, print the rest
+    # 3 = print only the explicit LOG calls
+    # 4 = silence
+
+    LEVEL = 4
+    DELIM_OUT = ">" * 79
+    DELIM_IN = "<" * 79
+    DELIM_REMOTE = ":" * 79
+
+    # for logging purposes
+    HMAP = {
+        WSProto.H_REG: "H_REG",
+        WSProto.H_ACK: "H_ACK",
+        WSProto.H_REJ: "H_REJ",
+        WSProto.H_CMD: "H_CMD",
+        WSProto.H_OBS: "H_OBS",
+        WSProto.H_IMG: "H_IMG",
+        WSProto.H_LOG: "H_LOG",
+        WSProto.H_ERR: "H_ERR",
+        WSProto.H_RLD: "H_RLD",
+    }
+
+    REGMAP = {
+        WSProto.REG_JS: "REG_JS",
+        WSProto.REG_PY: "REG_PY",
+    }
+
+    CMDMAP = {
+        WSProto.CMD_STP: "STP",
+        WSProto.CMD_K_Q: "K_Q",
+        WSProto.CMD_K_W: "K_W",
+        WSProto.CMD_K_O: "K_O",
+        WSProto.CMD_K_P: "K_P",
+        WSProto.CMD_RST: "RST",
+        WSProto.CMD_IMG: "IMG",
+        WSProto.CMD_DRW: "DRW",
+    }
+
+    OBSMAP = {
+        WSProto.OBS_PAS: "PAS",
+        WSProto.OBS_END: "END",
+    }
+
+    IMGMAP = {
+        WSProto.IMG_JPG: "JPG",
+        WSProto.IMG_PNG: "PNG",
+    }
+
+    def log(msg):
+        if Log.LEVEL <= 3:
+            print(msg)
+
+    def log_remote(msg, client):
+        if not Log.LEVEL <= 3:
+            return
+
+        client_name = client.name if client else "??"
+
+        if Log.LEVEL == 0:
+            print(
+                "%s\n[ %s ] %s" % (Log.DELIM_REMOTE, client_name, msg.decode("utf-8"))
+            )
+        else:
+            print("[ %s ] %s" % (client_name, msg.decode("utf-8")))
+
+    def log_outbound(data, client):
+        Log.log_allbound(data, client, "out")
+
+    def log_inbound(data, client):
+        Log.log_allbound(data, client, "in")
+
+    def log_allbound(data, client, direction):
+        if not Log.LEVEL <= 2:
+            return
+
+        client_name = client.name if client else "??"
+
+        if direction == "in":
+            delim = Log.DELIM_IN
+            arrow = "<--"
+        else:
+            delim = Log.DELIM_OUT
+            arrow = "-->"
+
+        header_uint = data[0]
+        header_name = Log.HMAP.get(header_uint)
+        header_repr = f"{header_uint:08b}"
+
+        if header_uint == WSProto.H_REG:
+            header2_uint = data[1]
+            header2_name = Log.REGMAP.get(header2_uint)
+            header2_repr = f"{header2_uint:08b}"
+
+            line2 = "%-16s | %-16s |" % (header_name, header2_name)
+            line3 = "%-16s | %-16s | %s" % (
+                header_repr,
+                header2_repr,
+                Log.data_repr(data[2:]),
+            )
+        elif header_uint == WSProto.H_CMD:
+            header2_uint = data[1]
+            names = []
+            for k, v in Log.CMDMAP.items():
+                if header2_uint & k:
+                    names.append(v)
+
+            header2_name = "+".join(names)
+            header2_repr = f"{header2_uint:08b}"
+
+            line2 = "%-16s | %-16s | (data)" % (header_name, header2_name)
+            line3 = "%-16s | %-16s | %s" % (
+                header_repr,
+                header2_repr,
+                Log.data_repr(data[2:]),
+            )
+        elif header_uint == WSProto.H_OBS:
+            header2_uint = data[1]
+            names = []
+            for k, v in Log.OBSMAP.items():
+                if header2_uint & k:
+                    names.append(v)
+
+            header2_name = "+".join(names)
+            header2_repr = f"{header2_uint:08b}"
+
+            # line2 = "%-16s | %-16s | %-16s | md5" % (header_name, header2_name, "(data)")
+            # line3 = "%-16s | %-16s | %-16s | %s" % (header_repr, header2_repr, Log.data_repr(data[2:]), Log.md5(data[2:]))
+            line2 = "%-16s | %-16s | %-16s" % (header_name, header2_name, "(data)")
+            line3 = "%-16s | %-16s | %-16s" % (
+                header_repr,
+                header2_repr,
+                Log.data_repr(data[2:]),
+            )
+        elif header_uint == WSProto.H_IMG:
+            header2_uint = data[1]
+            header2_name = Log.IMGMAP.get(header2_uint)
+            header2_repr = f"{header2_uint:08b}"
+
+            # line2 = "%-16s | %-16s | %-16s | md5" % (header_name, header2_name, "(data)")
+            # line3 = "%-16s | %-16s | %-16s | %s" % (header_repr, header2_repr, Log.data_repr(data[2:]), Log.md5(data[2:]))
+            line2 = "%-16s | %-16s | %-16s" % (header_name, header2_name, "(data)")
+            line3 = "%-16s | %-16s | %-16s" % (
+                header_repr,
+                header2_repr,
+                Log.data_repr(data[2:]),
+            )
+        else:
+            # line2 = "%-16s | %-16s | md5" % (header_name, "(data)")
+            # line3 = "%-16s | %-16s | %s" % (header_repr, Log.data_repr(data[1:]), Log.md5(data[2:]))
+            line2 = "%-16s | %-16s" % (header_name, "(data)")
+            line3 = "%-16s | %-16s" % (header_repr, Log.data_repr(data[1:]))
+
+        delim = "-" * 79
+
+        if Log.LEVEL == 0:
+            print(
+                "%s\n[%s%s] %s\n[%s%s] %s"
+                % (delim, arrow, client_name, line2, arrow, client_name, line3)
+            )
+        else:
+            print("[%s%s] %s" % (arrow, client_name, line2))
+
+    def data_repr(data):
+        x = data.hex()
+        return x if len(x) <= 16 else (x[:13] + "...")
+
+    def md5(data):
+        md5 = hashlib.md5()
+        md5.update(data)
+        return md5.hexdigest()

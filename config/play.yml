@@ -1,0 +1,12 @@
+---
+fps: 30
+env_kwargs:
+  __include__: "config/env.yml"
+  render_mode: "rgb_array"
+  r_for_terminate: true
+  stat_in_browser: true
+  game_in_browser: false
+  text_in_browser: "You are playing (press Escape to exit)"
+env_wrappers:
+  - module: "src.env.v1.util.verbose_wrapper"
+    cls: "VerboseWrapper"

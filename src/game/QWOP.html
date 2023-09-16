@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' data: gap: ws: ssl.gstatic.com 'unsafe-inline';">
+
+  <head>
+    <style>
+      #text {
+        padding-left: 10px;
+        font-family: sans-serif;
+        font-size: 16px;
+      }
+
+      #summary td.name {
+        text-align: right;
+        font-family: sans-serif;
+        font-size: 14px;
+        width: 25%;
+      }
+
+      #summary td.value {
+        text-align: left;
+        font-family: monospace;
+        font-size: 14px;
+        width: 25%;
+      }
+
+
+      #metrics td {
+        font-family: monospace;
+        text-align: right;
+        padding-left: 5px;
+        padding-right: 5px;
+        font-size: 12px;
+      }
+
+      #metrics .spacer-row td {
+        padding-top: 10px;
+      }
+
+      #metrics .metric-names td {
+        background-color: black;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        width: 15%;
+      }
+
+      /* Left column (bodypart names) */
+      #metrics tbody tr td:first-child {
+        font-family: sans-serif;
+        background-color: black;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        width: 25%;
+      }
+
+    </style>
+  </head>
+
+  <script type="text/javascript" src="./assets/howler.js"></script>
+  <script type="text/javascript" src="./seedrandom.js"></script>
+  <script type="text/javascript" src="./ws.js"></script>
+
+  <body>
+    <div id="container" style="display: flex; height: 400px;">
+      <div id="gameContent" style="display: inline-block; width: 640px">
+        <script type="text/javascript" src="./QWOP.js"></script>
+        <script type="text/javascript" src="./extensions.js"></script>
+      </div>
+
+      <div style="display: inline-block">
+        <div id="text" style="display: none; height: 50px; width: 400px;">
+          QWOP
+        </div>
+
+        <div id="stat" style="display: none; height: 350px; width: 400px">
+          <table id="summary" style="height: 50px; width: 100%">
+            <tr>
+              <td class="name">Reward:</td>
+              <td class="value" id="cell-tot_reward">0</td>
+
+              <td class="name">Steps:</td>
+              <td class="value" id="cell-steps">0</td>
+            </tr>
+
+            </tr>
+            <tr>
+              <td class="name">Real time:</td>
+              <td class="value" id="cell-real_time">00:00:00.0</td>
+
+              <td class="name">Game time:</td>
+              <td class="value" id="cell-game_time">00:00:00.0</td>
+            </tr>
+
+            <tr class="spacer-row"><td></td></tr>
+          </table>
+
+          <table id="metrics" style="height: 300px; width: 100%">
+            <thead>
+              <tr class="metric-names">
+                <td style="background-color: white; color: black; font-family: sans-serif;">
+                  observation
+                </td>
+                <td>x-pos</td>
+                <td>y-pos</td>
+                <td>angle</td>
+                <td>x-vel</td>
+                <td>y-vel</td>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr id="row-torso">
+                <td>Torso</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-head">
+                <td>Head</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-leftArm">
+                <td>Left Arm</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-leftCalf">
+                <td>Left Calf</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-leftFoot">
+                <td>Left Foot</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-leftForearm">
+                <td>Left Forearm</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-leftThigh">
+                <td>Left Thigh</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-rightArm">
+                <td>Right Arm</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-rightCalf">
+                <td>Right Calf</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-rightFoot">
+                <td>Right Foot</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-rightForearm">
+                <td>Right Forearm</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+              <tr id="row-rightThigh">
+                <td>Right Thigh</td>
+                <td></td><td></td><td></td><td></td><td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

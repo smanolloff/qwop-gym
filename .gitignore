@@ -1,0 +1,11 @@
+*.sublime-workspace
+*.sublime-project
+__pycache__/
+/.venv
+/vendor
+/wandb
+/data
+/tmp
+/src/game/QWOP.js
+/doc/demo.mp4
+/doc/banner.gif

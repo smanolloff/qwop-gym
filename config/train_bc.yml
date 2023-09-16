@@ -1,0 +1,12 @@
+---
+seed: ~  # auto-generated if blank
+run_id: ~  # auto-generated if blank
+n_epochs: 50
+recordings:
+  # glob patterns are also allowed
+  - "data/recordings/*.rec"
+out_dir_template: "data/BC-{run_id}"
+log_tensorboard: true
+env_kwargs:
+  __include__: "config/env.yml"
+  text_in_browser: "Do not close this window, training in progress..."

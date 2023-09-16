@@ -1,0 +1,46 @@
+---
+seed: ~  # auto-generated if blank
+run_id: ~  # auto-generated if blank
+recordings:
+  # glob patterns are also allowed
+  - "data/recordings/20230907225035-1718668468.rec"
+  - "data/recordings/20230908182933-1666369655.rec"
+out_dir_template: "data/AIRL_PPO-{run_id}"
+log_tensorboard: true
+episode_len: 1000
+total_timesteps: 1000
+trainer_kwargs:
+  demo_batch_size: 1024
+  demo_minibatch_size: ~
+  n_disc_updates_per_round: 4
+  log_dir: ~
+  gen_train_timesteps: ~
+  gen_replay_buffer_capacity: ~
+  init_tensorboard: false
+  init_tensorboard_graph: false
+  debug_use_ground_truth: false
+  allow_variable_horizon: false
+learner_module: "stable_baselines3"
+learner_cls: "PPO"
+learner_kwargs:
+  policy: "MlpPolicy"
+  use_sde: false
+  sde_sample_freq: 4
+  n_steps: 64
+  batch_size: 32
+  gamma: 0.9
+  gae_lambda: 0.98
+  clip_range: 0.4
+  normalize_advantage: true
+  ent_coef: 0.001
+  vf_coef: 0.5
+  max_grad_norm: 3
+learner_lr_schedule:
+  fn: "const"
+  initial_value: 0.003
+  step: 0.75
+  decays: 20
+  min_value: 5.0e-05
+env_kwargs:
+  __include__: "config/env.yml"
+  text_in_browser: "Do not close this window, training in progress..."

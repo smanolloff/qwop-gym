@@ -1,0 +1,60 @@
+@startuml "QwopEnv bootstrap"
+title "QwopEnv bootstrap"
+
+autoactivate on
+
+participant QwopEnv as env
+participant Client as client
+participant Server as server
+participant "Web Browser" as browser
+
+' force increased width (better preview)
+' participant XXXXXXXXXXXXXXXXXXXXX
+
+[-> env: new
+env -> server: <i>(subprocess)</i>\nstart(port)
+env -> client: new(port)
+client -x server: connect(port)
+rnote over client: retry in 5s
+server --> server: listen(port)
+rnote over server: enter async loop
+deactivate server
+server o-> browser: start (port)
+client -> server: connect(port)
+server --> client: ok
+client -> server: REG_PY
+rnote over server: wait for JS
+browser -> server: connect(port)
+server --> browser: ok
+browser -> server: REG_JS
+server --> browser: ACK
+deactivate browser
+server --> client: ACK
+deactivate server
+client --> env: ACK
+[<-- env
+
+[-> env: reset()
+env -> client: CMD_RST
+client -> server: CMD_RST
+server --> browser: CMD_RST
+activate browser
+browser --> server: obs
+activate server
+server --> client: obs
+client --> env: obs
+[<-- env: <i>normalized</i>\nobs
+
+[-> env: <i>2 = "W" key</i>\nstep(2)
+env -> client: CMD_STP | CMD_W
+client -> server: CMD_STP | CMD_W
+server --> browser: CMD_STP | CMD_W
+activate browser
+browser --> server: obs
+activate server
+server --> client: obs
+client --> env: obs
+[<-- env: <i>normalized</i>\nobs
+
+
+@enduml

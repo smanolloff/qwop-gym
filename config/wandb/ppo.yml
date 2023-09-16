@@ -1,0 +1,55 @@
+---
+program: wandb-agent.py
+project: qwop
+method: grid
+metric:
+  name: rollout/ep_rew_mean
+  goal: maximize
+parameters:
+  action: { value: train_ppo }
+  c:
+    parameters:
+      out_dir_template: { value: "data/PPO-{run_id}" }
+      log_tensorboard: { value: true }
+      total_timesteps: { value: !!float 15e6 }
+      max_episode_steps: { value: 1000 }
+      n_checkpoints: { value: 5 }
+      learner_kwargs:
+        parameters:
+          policy: { value: "MlpPolicy" }
+          use_sde: { value: false }
+          sde_sample_freq: { value: 4 }
+          n_steps: { value: 2048 }
+          batch_size: { value: 32 }
+          n_epochs: { value: 10 }
+          gamma: { values: [0.99, 0.98] }
+          gae_lambda: { value: 0.98 }
+          clip_range: { value: 0.4 }
+          normalize_advantage: { value: true }
+          ent_coef: { values: [0.001, 0.0001] }
+          vf_coef: { value: 0.5 }
+          max_grad_norm: { value: 3 }
+      learner_lr_schedule:
+        parameters:
+          fn: { value: "const" }
+          initial_value: { value: 0.0003 }
+          step: { value: 0.75 }
+          decays: { value: 20 }
+          min_value: { value: 0.00005 }
+      env_kwargs:
+        parameters:
+          driver: { value: "/Users/simo/Projects/qwop/vendor/chromedriver" }
+          browser: { value: "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" }
+          render_mode: { value: "browser" }
+          failure_cost: { value: 10 }
+          success_reward: { value: 50 }
+          time_cost_mult: { value: 10 }
+          frames_per_step: { value: 4 }
+          stat_in_browser: { value: false }
+          game_in_browser: { value: false }
+          text_in_browser: { value: ~ }
+          reload_on_reset: { value: false }
+          auto_draw: { value: false }
+          browser_mock: { value: false }
+          r_for_terminate: { value: false }
+          text_in_browser: { value: "Training in progress..." }
