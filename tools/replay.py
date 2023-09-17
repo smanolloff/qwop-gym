@@ -42,7 +42,7 @@ def replay(fps, recordings, reset_delay):
             for i, episode in enumerate(rec["episodes"], start=1):
                 print("Replaying episode %d from %s" % (i, rec["file"]))
                 model = Replayer(episode)
-                common.play_model(env, fps, model)
+                common.play_model(env, fps, 1, model)
                 time.sleep(reset_delay)
 
                 # Recorded episodes should termiate at exactly the last action

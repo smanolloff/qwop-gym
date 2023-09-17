@@ -26,7 +26,7 @@ import random
 import string
 import numpy as np
 
-from src.env.v1.env import Env
+from src.env.v1.qwop_env import QwopEnv
 
 # Keys of user-defined metrics in the `info` dict
 INFO_KEYS = ("time", "distance", "avgspeed", "is_success")
@@ -63,7 +63,7 @@ def expand_env_kwargs(env_kwargs):
 
 def register_env(env_kwargs={}, env_wrappers=[]):
     def wrapped_env_creator(**kwargs):
-        env = Env(**kwargs)
+        env = QwopEnv(**kwargs)
 
         for wrapper in env_wrappers:
             wrapper_mod = importlib.import_module(wrapper["module"])
@@ -174,7 +174,7 @@ def lr_from_schedule(schedule):
             exit(1)
 
 
-def play_model(env, fps, model):
+def play_model(env, fps, steps_per_step, model):
     done = False
     normfps = 30  # ~ game fps at "normal" speed
     obs = env.reset()
@@ -184,8 +184,11 @@ def play_model(env, fps, model):
 
     while not done:
         action, _states = model.predict(obs)
-        obs, reward, done, info = env.step(action)
-        clock.tick()
+        for _ in range(steps_per_step):
+            obs, reward, done, info = env.step(action)
+            clock.tick()
+            if done:
+                break
 
 
 def save_model(out_dir, model):

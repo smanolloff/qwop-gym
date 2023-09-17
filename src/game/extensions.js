@@ -78,12 +78,8 @@ const CONFIG = {
 
 /** Advances N timesteps in the game. */
 function FN_STEP () {
-    // affects the calculation of the elapsed time
-    // (displayed only after finish)
-    const timestepsize = .03333333333333333;
-
     for (let i=CONFIG.stepsize; i--; ) {
-        CORE.game.update(timestepsize);
+        CORE.game.update(TIMESTEP_SIZE);
     }
 }
 
@@ -188,17 +184,13 @@ function FN_OBSERVATION() {
     return dv
 }
 
-/** Formats a number into a 4-character string. */
-function fshort(v) {
-    let s = v.toString();
-    return (s.startsWith("-") ? s : ` ${s}`).slice(0, 4);
-}
-
+/** Formats seconds into MM:SS.NNN format */
 function toclock(s) {
     return Math.trunc(s / 60).toString().padStart(2, '0') + ":" +
         Math.trunc(s % 60).toString().padStart(2, '0') + "." +
         (s - Math.trunc(s)).toString().slice(2,3);
 }
+
 
 /** Visualizes game stats on each step. */
 function FN_UPDATE_STATS(dv_in, dv_out) {
@@ -208,7 +200,6 @@ function FN_UPDATE_STATS(dv_in, dv_out) {
         const tot_rew = dv_in.getFloat32(8, LE);
 
         document.getElementById("cell-steps").textContent = steps;
-        // document.getElementById("cell-reward").textContent = rew.toFixed(2);
         document.getElementById("cell-tot_reward").textContent = tot_rew.toFixed(2);
     }
 
@@ -218,8 +209,27 @@ function FN_UPDATE_STATS(dv_in, dv_out) {
 
     const floats = new Float32Array(dv_out.buffer.slice(2));
 
-    // floats[0] is the time
-    // floats[1] is the distance
+    const game_time = toclock(floats[0]);
+    const real_time = toclock(((new Date()) - START_TIME) / 1000);
+    document.getElementById("cell-game_time").textContent = game_time;
+    document.getElementById("cell-real_time").textContent = real_time;
+
+    const distance = floats[1];
+    document.getElementById("cell-distance").textContent = `${distance.toFixed(1)} m`;
+
+    if (DISTANCE_BUFFER.length < DISTANCE_BUFFER_SIZE) {
+        DISTANCE_BUFFER.push(distance)
+    } else {
+        DISTANCE_BUFFER.splice(DISTANCE_BUFFER_SIZE - 1, 1)
+        DISTANCE_BUFFER.unshift(distance)
+    }
+
+    const ds = DISTANCE_BUFFER[0] - DISTANCE_BUFFER[DISTANCE_BUFFER.length - 1];
+    const dt = TIMESTEP_SIZE * CONFIG.stepsize * (DISTANCE_BUFFER.length - 1);
+    const v = 10 * ds / dt;
+
+    document.getElementById("cell-avg_speed").textContent = `${v.toFixed(1)} m/s`;
+
     let i = 2;
 
     for (const partname of OBS_PARTS) {
@@ -242,6 +252,15 @@ Math.seedrandom(CONFIG.seed);
 
 // Used to mark the game's start time (used only in visualized stats)
 let START_TIME;
+
+// affects the calculation of the elapsed time
+// (usually displayed after finishing)
+const TIMESTEP_SIZE = .03333333333333333;
+
+// for calculating average speeds
+// (displayed in stats table)
+const DISTANCE_BUFFER = []
+const DISTANCE_BUFFER_SIZE = 10
 
 // Load the game
 QWOP();

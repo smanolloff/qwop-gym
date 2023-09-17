@@ -44,6 +44,7 @@ def main(action, cfg, tag=None):
             spectate(
                 fps=cfg.get("fps", 30),
                 reset_delay=cfg.get("reset_delay", 1),
+                steps_per_step=cfg.get("steps_per_step", 1),
                 model_file=cfg["model_file"],
                 model_mod=cfg.get("model_mod", "stable_baselines3"),
                 model_cls=cfg.get("model_cls", "PPO"),

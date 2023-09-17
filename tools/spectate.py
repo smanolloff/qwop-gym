@@ -30,13 +30,20 @@ def load_model(mod_name, cls_name, file):
     return getattr(mod, cls_name).load(file)
 
 
-def spectate(fps, reset_delay, model_file, model_mod, model_cls):
+def spectate(
+    fps,
+    reset_delay,
+    steps_per_step,
+    model_file,
+    model_mod,
+    model_cls,
+):
     model = load_model(model_mod, model_cls, model_file)
     env = gym.make("QwopEnv-v1")
 
     try:
         while True:
-            common.play_model(env, fps, model)
+            common.play_model(env, fps, steps_per_step, model)
             time.sleep(reset_delay)
     finally:
         env.close()
