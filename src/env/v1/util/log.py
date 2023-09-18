@@ -14,9 +14,18 @@
 # limitations under the License.
 # =============================================================================
 
-from .wsproto import WSProto
+import logging
 import hashlib
 from datetime import datetime
+
+from .wsproto import WSProto
+
+
+class RelativeTimeFormatter(logging.Formatter):
+    def format(self, record):
+        reltime = record.relativeCreated
+        record.reltime = "%.2f" % (record.relativeCreated / 1000)
+        return super().format(record)
 
 
 class Log:
@@ -70,34 +79,35 @@ class Log:
         WSProto.IMG_PNG: "PNG",
     }
 
-    def log(msg):
-        if Log.LEVEL <= 3:
-            ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            print("[%s] %s" % (ts, msg))
+    def get_logger(name, level):
+        logger = logging.getLogger(name.split(".")[-1])
+        logger.setLevel(getattr(logging, level))
 
-    def log_remote(msg, client):
-        if not Log.LEVEL <= 3:
-            return
+        fmt = "-- %(reltime)ss [%(name)s] %(message)s"
+        formatter = RelativeTimeFormatter(fmt)
 
+        loghandler = logging.StreamHandler()
+        loghandler.setLevel(logging.DEBUG)
+        loghandler.setFormatter(formatter)
+        logger.addHandler(loghandler)
+
+        return logger
+
+    def format_remote(msg, client, longfmt):
         client_name = client.name if client else "??"
 
-        if Log.LEVEL == 0:
-            print(
-                "%s\n[ %s ] %s" % (Log.DELIM_REMOTE, client_name, msg.decode("utf-8"))
-            )
+        if longfmt:
+            return "%s\n[ %s ] %s" % (Log.DELIM_REMOTE, client_name, msg.decode("utf-8"))
         else:
-            print("[ %s ] %s" % (client_name, msg.decode("utf-8")))
+            return "[ %s ] %s" % (client_name, msg.decode("utf-8"))
 
-    def log_outbound(data, client):
-        Log.log_allbound(data, client, "out")
+    def format_outbound(data, client):
+        return Log.format_allbound(data, client, "out")
 
-    def log_inbound(data, client):
-        Log.log_allbound(data, client, "in")
+    def format_inbound(data, client):
+        return Log.format_allbound(data, client, "in")
 
-    def log_allbound(data, client, direction):
-        if not Log.LEVEL <= 2:
-            return
-
+    def format_allbound(data, client, direction):
         client_name = client.name if client else "??"
 
         if direction == "in":
@@ -178,12 +188,9 @@ class Log:
         delim = "-" * 79
 
         if Log.LEVEL == 0:
-            print(
-                "%s\n[%s%s] %s\n[%s%s] %s"
-                % (delim, arrow, client_name, line2, arrow, client_name, line3)
-            )
+            return "%s\n[%s%s] %s\n[%s%s] %s" % (delim, arrow, client_name, line2, arrow, client_name, line3)
         else:
-            print("[%s%s] %s" % (arrow, client_name, line2))
+            return "[%s%s] %s" % (arrow, client_name, line2)
 
     def data_repr(data):
         x = data.hex()

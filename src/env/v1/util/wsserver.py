@@ -44,10 +44,11 @@ class WSServer:
         seed,
         driver,
         browser,
-        stepsize=1,
-        stat_in_browser=False,
-        text_in_browser=None,
-        game_in_browser=True,
+        stepsize,
+        stat_in_browser,
+        text_in_browser,
+        game_in_browser,
+        loglevel,
         manual_client=False,
     ):
         seedmin = -9007199254740991  # js Number.MIN_SAFE_INTEGER
@@ -64,6 +65,7 @@ class WSServer:
         self.driver = driver
         self.browser = browser
         self.stepsize = stepsize
+        self.loglevel = loglevel
 
         self._steps = 0
         self._event = asyncio.Event()
@@ -83,6 +85,9 @@ class WSServer:
             future.set_result(0)
 
     def start(self):
+        # must set logger here, as .start() is called in another process
+        self.logger = Log.get_logger(__name__, self.loglevel)
+
         loop = asyncio.get_event_loop()
         stop = asyncio.Future()
 
@@ -99,7 +104,7 @@ class WSServer:
         async with websockets.serve(self.handler, sock=self.sock) as server:
             self.port = server.sockets[0].getsockname()[1]
 
-            Log.log("Listening on port %d" % self.port)
+            self.logger.info("Listening on port %d" % self.port)
 
             # wait until driver connects
             if self.driver and self.browser:
@@ -126,6 +131,8 @@ class WSServer:
         return url
 
     async def _launch_browser(self):
+        self.logger.info("Launching web browser...")
+
         options = webdriver.ChromeOptions()
         options.add_argument("allow-file-access-from-files")
         options.add_argument("allow-cross-origin-auth-prompt")
@@ -155,7 +162,6 @@ class WSServer:
         self._driver = webdriver.Chrome(service=service, options=options)
         self._window = self._driver.window_handles[0]
         self._driver.get(self.build_url())
-        Log.log("Browser started...")
 
     def _maybe_relaunch_browser(self):
         try:
@@ -163,14 +169,13 @@ class WSServer:
                 # window is alive
                 return
             else:
-                print("[server] driver window not found")
+                self.logger.error("Browser window not found")
         except Exception as e:
-            print("[server] driver exception: %s" % str(e))
+            self.logger.error(str(e))
             pass
 
         # window is dead
         if self._event.is_set():
-            print("[server] re-launching browser...")
             self._event.clear()
             asyncio.create_task(self._launch_browser())
 
@@ -180,7 +185,6 @@ class WSServer:
         match peer_id:
             case WSProto.REG_JS:
                 if self._jspeer.ws:
-                    Log.log("Re-registering JS peer %s" % ua)
                     await self._jspeer.ws.close()
 
                 self._jspeer.ws = ws
@@ -189,12 +193,11 @@ class WSServer:
 
                 await self.send(self._jspeer, to_bytes(WSProto.H_ACK))
 
-                Log.log("Browser ready")
+                self.logger.info("Browser (js client) registration ACK")
                 self._event.set()  # Unblock self._start()
 
             case WSProto.REG_PY:
                 if self._pypeer.ws:
-                    Log.log("Re-registering PY peer %s" % ua)
                     await self._pypeer.ws.close()
 
                 self._pypeer.ws = ws
@@ -205,16 +208,19 @@ class WSServer:
                 self._maybe_relaunch_browser()
 
                 if not self._manual_client:
-                    Log.log("Waiting for browser ready...")
+                    self.logger.info("Waiting for browser...")
                     await asyncio.wait_for(self._event.wait(), timeout=60)
 
                 await self.send(self._pypeer, to_bytes(WSProto.H_ACK))
+                self.logger.info("QwopEnv (py client) registration ACK")
 
     async def _reload(self, src_peer, seed):
         assert src_peer == self._pypeer, "Received RELOAD from a non-py peer"
+        self.logger.info("Re-loading web-page, new seed: %s" % seed)
+
         self.seed = seed
 
-        Log.log("Closing JS connection")
+        self.logger.info("Closing JS connection")
 
         ws = self._jspeer.ws
         self._jspeer.ws = None
@@ -222,7 +228,7 @@ class WSServer:
 
         await ws.close()
         self._driver.get(self.build_url())
-        Log.log("Waiting for browser ready...")
+        self.logger.info("Waiting for browser ready...")
         await asyncio.wait_for(self._event.wait(), timeout=5)
         await self.send(self._pypeer, to_bytes(WSProto.H_ACK))
 
@@ -230,15 +236,15 @@ class WSServer:
         try:
             await self._handler(ws)
         except Exception as e:
-            print("[server] Exception: %s" % str(e))
+            self.logger.error(str(e))
 
     async def _handler(self, ws):
         ua = ws.request_headers.get("user-agent")
-        Log.log("Connection from: %s" % ua)
+        self.logger.info("Connection from: %s" % ua)
 
         async for data in ws:
             src = self._peers.get(ws)
-            Log.log_inbound(data, src)
+            self.logger.debug(Log.format_inbound(data, src))
 
             header = data[0]
             payload = data[1:]
@@ -252,14 +258,15 @@ class WSServer:
                 case WSProto.H_RLD:
                     await self._reload(src, int.from_bytes(payload[0:4], sys.byteorder))
                 case WSProto.H_LOG:
-                    Log.log_remote(payload, src)
+                    longfmt = self.logger.level == logging.DEBUG
+                    self.logger.info(Log.format_remote(payload, src, longfmt))
                 case WSProto.H_ERR:
                     raise Exception("JS error: %s" % data[1:].decode())
                 case _:
                     await self.send(src.other, data)
 
     async def send(self, peer, data):
-        Log.log_outbound(data, peer)
+        self.logger.debug(Log.format_outbound(data, peer))
         await peer.ws.send(data)
 
 

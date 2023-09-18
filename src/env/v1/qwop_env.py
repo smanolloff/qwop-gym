@@ -24,10 +24,11 @@ import PIL
 import PIL.Image
 import io
 import struct
+import logging
 
 from .util.wsproto import WSProto, to_bytes
-from .util.server import WSServer
-from .util.client import WSClient, WSClientMock
+from .util.wsserver import WSServer
+from .util.wsclient import WSClient, WSClientMock
 from .util.log import Log
 
 BYTES_RESET = to_bytes(WSProto.H_CMD) + to_bytes(WSProto.CMD_RST)
@@ -103,6 +104,7 @@ class QwopEnv(gym.Env):
         r_for_terminate=False,
         seed=None,
         browser_mock=False,
+        loglevel="DEBUG",
         noop=None,
     ):
         seedval = seed or np.random.default_rng().integers(2**31)
@@ -123,15 +125,17 @@ class QwopEnv(gym.Env):
                 text_in_browser=text_in_browser,
                 driver=driver,
                 browser=browser,
+                loglevel=loglevel,
             )
             self.proc = Process(target=server.start)
             self.proc.start()
-            self.client = WSClient(sock.getsockname()[1])
+            self.client = WSClient(sock.getsockname()[1], loglevel)
 
         self.screen = None
         self.auto_draw = auto_draw
         self.r_for_terminate = r_for_terminate
         self.reload_on_reset = reload_on_reset
+        self.logger = Log.get_logger(__name__, loglevel)
 
         self._set_keycodes()
 
@@ -212,11 +216,9 @@ class QwopEnv(gym.Env):
 
     def seed(self, seed=None):
         # Can't re-seed -- the game has already been initialized
-        # (forcing browser reload could fix that though)
-        print(
-            "WARNING: seed=%s ignored in seed() calls, call reload() instead" % seed
-        )
-        super()
+        # self.logger.warn("env.seed(v) has no effect, use env.reload(v) instead")
+        if seed is not None:
+            self.reload(seed)
 
     def reset(self):
         self._reset_env()
@@ -227,7 +229,6 @@ class QwopEnv(gym.Env):
     # (it can be changed ONLY if reloading the page)
     def reload(self, seed):
         assert seed >= 0 and seed <= np.iinfo(np.int32).max
-        Log.log("Re-loading env with new seed: %d" % seed)
         self.seedval = seed
         self._restart_game(reload_page=True)
         self.reset()

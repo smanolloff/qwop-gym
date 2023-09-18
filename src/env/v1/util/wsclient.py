@@ -23,18 +23,19 @@ import sys
 
 
 class WSClient:
-    def __init__(self, port):
+    def __init__(self, port, loglevel):
         self.port = port
+        self.logger = Log.get_logger(__name__, loglevel)
         self.connect()
 
     def connect(self):
         while True:
             try:
                 self._connect_attempt()
-                Log.log("[client] connection successful")
+                self.logger.debug("Connected")
                 break
             except Exception as e:
-                Log.log("Failed to connect: %s" % str(e))
+                self.logger.warn("Failed to connect: %s" % str(e))
                 time.sleep(5)
                 pass
 
@@ -50,21 +51,19 @@ class WSClient:
             got = np.binary_repr(data[0])
             raise Exception("Header error: expected %s, got: %s" % (exp, got))
 
-        Log.log("Registration successful")
-
     def send(self, data):
         while True:
             try:
                 self.ws.send(data)
-                return self.ws.recv(timeout=1)
+                return self.ws.recv(timeout=5)
             except Exception as e:
-                print("[client] Failed to send/receive: %s" % str(e))
+                self.logger.error("Failed to send/receive: %s" % str(e))
                 try:
                     self.close()
                 except Exception as e1:
-                    print("[client] Failed to close connection: %s" % str(e1))
+                    self.logger.error("Failed to close connection: %s" % str(e1))
 
-                Log.log("[client] Reconnecting in 5s...")
+                self.logger.info("Reconnecting in 5s...")
                 time.sleep(5)
                 self.connect()
 

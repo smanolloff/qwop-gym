@@ -1,12 +1,12 @@
 ---
 # [int] Frames per second (use 30 for a genuine QWOP experience)
-fps: 30
+fps: 60
 
 # [int] End-game screen duration in seconds
 reset_delay: 1
 
 # [string] Path to the file to load the model from
-model_file: "data/QRDQN-jn655wte/model_16000000_steps.zip"
+model_file: "data/QRDQN-sinm4wwz/model_35200000_steps.zip"
 
 # [string] Module name of the learner alrogirthm (eg. "stable_baselines3")
 model_mod: "sb3_contrib"

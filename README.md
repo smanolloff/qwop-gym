@@ -166,8 +166,6 @@ code simply hangs in case of a browser start error (eg. wrong path).
 soon as it's put in the background (on OS X at least). Ideally, the browser
 should run in a headless mode, but I couldn't find a WebGL-compatible headless
 browser.
-* the log level is hard-coded in `log.py`; also, the logging facility itself
-is pretty basic and relies on simple `print` statements.
 * `gym` is deprecated since October 2022 and this project should be migrated to
 `gymnasium`. This will be possible once
 [this](https://github.com/HumanCompatibleAI/imitation/pull/735) blocker gets
