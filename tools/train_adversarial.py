@@ -271,7 +271,7 @@ def train_adversarial(
     venv = create_fixed_length_vec_env(episode_len, seed)
 
     try:
-        out_dir = out_dir_template.format(seed=seed, run_id=run_id)
+        out_dir = common.out_dir_from_template(out_dir_template, seed, run_id)
         rollouts = collect_rollouts(venv, episode_len, recs)
 
         learner = init_learner(

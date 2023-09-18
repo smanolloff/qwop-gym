@@ -226,7 +226,7 @@ function FN_UPDATE_STATS(dv_in, dv_out) {
 
     const ds = DISTANCE_BUFFER[0] - DISTANCE_BUFFER[DISTANCE_BUFFER.length - 1];
     const dt = TIMESTEP_SIZE * CONFIG.stepsize * (DISTANCE_BUFFER.length - 1);
-    const v = 10 * ds / dt;
+    const v = 10 * ds / (dt || 1);
 
     document.getElementById("cell-avg_speed").textContent = `${v.toFixed(1)} m/s`;
 

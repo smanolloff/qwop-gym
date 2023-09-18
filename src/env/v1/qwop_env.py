@@ -100,9 +100,9 @@ class QwopEnv(gym.Env):
         game_in_browser=True,  # show the game itself in the browser
         reload_on_reset=False,  # reload web page on reset calls
         auto_draw=False,  # browser draw on each step
-        browser_mock=False,
         r_for_terminate=False,
         seed=None,
+        browser_mock=False,
         noop=None,
     ):
         seedval = seed or np.random.default_rng().integers(2**31)
@@ -213,8 +213,8 @@ class QwopEnv(gym.Env):
     def seed(self, seed=None):
         # Can't re-seed -- the game has already been initialized
         # (forcing browser reload could fix that though)
-        Log.log(
-            "WARNING: seed=%s ignored in reset() calls, call reload() instead" % seed
+        print(
+            "WARNING: seed=%s ignored in seed() calls, call reload() instead" % seed
         )
         super()
 

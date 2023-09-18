@@ -1,14 +1,33 @@
 ---
-seed: ~  # auto-generated if blank
-run_id: ~  # auto-generated if blank
+# [int] (optional) Env seed (auto-generated if blank)
+seed: ~
+
+# [string] (optional) Unique ID of this run (auto-generated if blank)
+run_id: ~
+
+# [List<string>] List of paths for the recordings to train with
+# Glob patterns are supported, eg. "data/recordings/*.rec"
 recordings:
-  # glob patterns are also allowed
   - "data/recordings/20230907225035-1718668468.rec"
   - "data/recordings/20230908182933-1666369655.rec"
+
+# [string] Directory template to save the trained model, metadata and
+# tensorboard logs. If the template contains {run_id} or {seed} placeholders,
+# they will be replaced with the corresponding runtime values.
 out_dir_template: "data/AIRL_PPO-{run_id}"
+
+# [bool] Log tensorboard data
 log_tensorboard: true
+
+# [int] Fixed-length of each episode. More on why this is required:
+# https://imitation.readthedocs.io/en/latest/main-concepts/variable_horizon.html
 episode_len: 1000
-total_timesteps: 1000
+
+# [int] Training duration
+total_timesteps: 2000
+
+# AIRL algorithm parameters
+# https://imitation.readthedocs.io/en/latest/algorithms/gail.html#api
 trainer_kwargs:
   demo_batch_size: 1024
   demo_minibatch_size: ~
@@ -16,12 +35,16 @@ trainer_kwargs:
   log_dir: ~
   gen_train_timesteps: ~
   gen_replay_buffer_capacity: ~
-  init_tensorboard: false
-  init_tensorboard_graph: false
   debug_use_ground_truth: false
   allow_variable_horizon: false
+
+# [string] Module name of the learner alrogirthm (eg. "stable_baselines3")
 learner_module: "stable_baselines3"
+
+# [string] Class name of the learner algorithm (eg. "PPO")
 learner_cls: "PPO"
+
+# Parameters for the learner algorithm
 learner_kwargs:
   policy: "MlpPolicy"
   use_sde: false
@@ -35,12 +58,37 @@ learner_kwargs:
   ent_coef: 0.001
   vf_coef: 0.5
   max_grad_norm: 3
+
+# Schedule for the learning_rate as a function of the progress remaining.
+# Possible values for `fn`:
+#   * "const" - use `initial_value` as a constant value for the entire training
+#   * "lin_decay" - starting with `initial_value`, multiply by `step` at even
+#      intervals (but no more than `decays` times) until `min_value` is reached
+# Example:
+#   fn: "lin_decay"
+#   initial_value: 0.01
+#   step: 0.5
+#   decays: 10
+#   min_value: 0.001
+# During training, the learning_rate (lr) changes like so:
+# 0%: 0.01, 10%: 0.005, 20%: 0.0025, 30%: 0.000625, 40%: 0.000625, ...100%: 0.000625
+# (0.000625 is below `min_value` so the learning rate remains unchanged)
 learner_lr_schedule:
   fn: "const"
   initial_value: 0.003
   step: 0.75
   decays: 20
   min_value: 5.0e-05
+
+# Env parameters
+# The special "__include__" key allows to load them from another file.
+# Keys listed here take precedence over keys loaded with __include__.
+# See notes in `env.yml` for more info
 env_kwargs:
   __include__: "config/env.yml"
   text_in_browser: "Do not close this window, training in progress..."
+
+# List of gym wrappers to use for the env
+# Each list element must be a dict with "module" and "cls" keys
+# (see `spectate.yml` for an example)
+env_wrappers: []

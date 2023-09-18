@@ -1,11 +1,33 @@
 ---
-seed: ~  # auto-generated if blank
-run_id: ~  # auto-generated if blank
+# [int] (optional) Env seed (auto-generated if blank)
+seed: ~
+
+# [string] (optional) Unique ID of this run (auto-generated if blank)
+run_id: ~
+
+# [string] (optional) Continue training of a previously trained model
+model_load_file: ~
+
+# [string] Directory template to save the trained model, metadata and
+# tensorboard logs. If the template contains {run_id} or {seed} placeholders,
+# they will be replaced with the corresponding runtime values.
 out_dir_template: "data/QRDQN-{run_id}"
+
+# [bool] Log tensorboard data
 log_tensorboard: true
-total_timesteps: 200000
-max_episode_steps: 5000
+
+# [int] Training duration
+total_timesteps: 1_000_000
+
+# [int] (optional) Force env termination on the Nth step of an episode
+max_episode_steps: 2000
+
+# [int] Number of times the model will be saved during training
+# Example: 5 means save at 20%, 40%, 60%, 80% and 100% progress
 n_checkpoints: 5
+
+# QRDQN algorithm parameters (used only if `model_load_file` is blank)
+# https://sb3-contrib.readthedocs.io/en/master/modules/qrdqn.html#sb3_contrib.qrdqn.QRDQN
 learner_kwargs:
   policy: "MlpPolicy"
   buffer_size: 100000
@@ -16,15 +38,40 @@ learner_kwargs:
   train_freq: 4
   gradient_steps: 1
   target_update_interval: 100000
-  exploration_fraction: 0.01
-  exploration_initial_eps: 1
-  exploration_final_eps: 0.01
+  exploration_fraction: 0.5
+  exploration_initial_eps: 0.01
+  exploration_final_eps: 0
+
+# Schedule for the learning_rate as a function of the progress remaining.
+# Possible values for `fn`:
+#   * "const" - use `initial_value` as a constant value for the entire training
+#   * "lin_decay" - starting with `initial_value`, multiply by `step` at even
+#      intervals (but no more than `decays` times) until `min_value` is reached
+# Example:
+#   fn: "lin_decay"
+#   initial_value: 0.01
+#   step: 0.5
+#   decays: 10
+#   min_value: 0.001
+# During training, the learning_rate (lr) changes like so:
+# 0%: 0.01, 10%: 0.005, 20%: 0.0025, 30%: 0.000625, 40%: 0.000625, ...100%: 0.000625
+# (0.000625 is below `min_value` so the learning rate remains unchanged)
 learner_lr_schedule:
   fn: "const"
   initial_value: 0.001
   step: 0.75
   decays: 15
   min_value: 0.00001
+
+# Env parameters
+# The special "__include__" key allows to load them from another file.
+# Keys listed here take precedence over keys loaded with __include__.
+# See notes in `env.yml` for more info
 env_kwargs:
   __include__: "config/env.yml"
   text_in_browser: "Do not close this window, training in progress..."
+
+# List of gym wrappers to use for the env
+# Each list element must be a dict with "module" and "cls" keys
+# (see `spectate.yml` for an example)
+env_wrappers: []

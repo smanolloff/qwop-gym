@@ -160,8 +160,6 @@ open-source).
 The below list highlights some areas in which the project could use some
 improvements:
 
-* connection errors with the websocket server are non-recoverable and terminate
-any running learning process.
 * exception handling in `server.py`'s `_start()` method is flawed as the
 code simply hangs in case of a browser start error (eg. wrong path).
 * the OS puts some pretty rough restrictions on the web browser's rendering as

@@ -74,44 +74,43 @@ class WSServer:
         self._pypeer.other = self._jspeer
         self._peers = {}
         self._manual_client = manual_client
+        self._shutting_down = False
 
-    def cleanup(self, *args):
-        self.driver.quit()
-        if not self._future.done():
-            self._future.set_result(0)
+    def cleanup_and_exit(self, future):
+        self._shutting_down = True
+        self._event.set()
+        if not future.done():
+            future.set_result(0)
 
     def start(self):
-        signal.signal(signal.SIGINT, self.cleanup)
-        signal.signal(signal.SIGTERM, self.cleanup)
+        loop = asyncio.get_event_loop()
+        stop = asyncio.Future()
+
+        loop.add_signal_handler(signal.SIGINT, self.cleanup_and_exit, stop)
+        loop.add_signal_handler(signal.SIGTERM, self.cleanup_and_exit, stop)
 
         with self.sock:
-            asyncio.run(self._start())
+            while not self._shutting_down:
+                loop.run_until_complete(self._start(stop))
 
-    async def _start(self):
-        self._future = asyncio.Future()
+            self._driver.quit()
 
+    async def _start(self, stop):
         async with websockets.serve(self.handler, sock=self.sock) as server:
             self.port = server.sockets[0].getsockname()[1]
 
             Log.log("Listening on port %d" % self.port)
 
-            #
-            # XXX: running ws.py in a fullscreen terminal means that
-            #      the browser will NOT render anything if terminal is focused
-            #       => screenshots will be a black box
-            #       => better to run terminal in windowed mode
-            #
-
             # wait until driver connects
             if self.driver and self.browser:
-                asyncio.create_task(self._start_game())
+                asyncio.create_task(self._launch_browser())
 
                 # XXX: I can't figure out why the code hangs forever
                 #      when this task raises an exception :(
                 await asyncio.wait_for(self._event.wait(), timeout=30)
 
-            # run forever
-            await self._future
+            await stop
+            server.close()
 
     def build_url(self):
         file = pathlib.Path(__file__).parents[3].joinpath("game", "QWOP.html")
@@ -126,7 +125,7 @@ class WSServer:
 
         return url
 
-    async def _start_game(self):
+    async def _launch_browser(self):
         options = webdriver.ChromeOptions()
         options.add_argument("allow-file-access-from-files")
         options.add_argument("allow-cross-origin-auth-prompt")
@@ -153,9 +152,27 @@ class WSServer:
         options.binary_location = self.browser
         options.add_argument("--incognito")
 
-        self.driver = webdriver.Chrome(service=service, options=options)
-        self.driver.get(self.build_url())
+        self._driver = webdriver.Chrome(service=service, options=options)
+        self._window = self._driver.window_handles[0]
+        self._driver.get(self.build_url())
         Log.log("Browser started...")
+
+    def _maybe_relaunch_browser(self):
+        try:
+            if self._window in self._driver.window_handles:
+                # window is alive
+                return
+            else:
+                print("[server] driver window not found")
+        except Exception as e:
+            print("[server] driver exception: %s" % str(e))
+            pass
+
+        # window is dead
+        if self._event.is_set():
+            print("[server] re-launching browser...")
+            self._event.clear()
+            asyncio.create_task(self._launch_browser())
 
     async def _register_peer(self, ws, peer_id):
         ua = ws.request_headers.get("user-agent")
@@ -163,34 +180,35 @@ class WSServer:
         match peer_id:
             case WSProto.REG_JS:
                 if self._jspeer.ws:
-                    Log.log("error: already registered: JS peer %s" % ua)
-                    await self.send(self._jspeer, to_bytes(WSProto.H_REJ))
-                    await ws.close()
-                else:
-                    self._jspeer.ws = ws
-                    self._jspeer.ua = ua
-                    self._peers[ws] = self._jspeer
+                    Log.log("Re-registering JS peer %s" % ua)
+                    await self._jspeer.ws.close()
 
-                    await self.send(self._jspeer, to_bytes(WSProto.H_ACK))
+                self._jspeer.ws = ws
+                self._jspeer.ua = ua
+                self._peers[ws] = self._jspeer
 
-                    Log.log("Browser ready")
-                    self._event.set()  # Unblock self._start()
+                await self.send(self._jspeer, to_bytes(WSProto.H_ACK))
+
+                Log.log("Browser ready")
+                self._event.set()  # Unblock self._start()
 
             case WSProto.REG_PY:
                 if self._pypeer.ws:
-                    Log.log("error: already registered: PY peer %s" % ua)
-                    await self.send(self._pypeer, to_bytes(WSProto.H_REJ))
-                    await ws.close()
-                else:
-                    self._pypeer.ws = ws
-                    self._pypeer.ua = ua
-                    self._peers[ws] = self._pypeer
+                    Log.log("Re-registering PY peer %s" % ua)
+                    await self._pypeer.ws.close()
 
-                    if not self._manual_client:
-                        Log.log("Waiting for browser ready...")
-                        await asyncio.wait_for(self._event.wait(), timeout=60)
+                self._pypeer.ws = ws
+                self._pypeer.ua = ua
+                self._peers[ws] = self._pypeer
 
-                    await self.send(self._pypeer, to_bytes(WSProto.H_ACK))
+                # If py client reconnects, maybe the browser is dead
+                self._maybe_relaunch_browser()
+
+                if not self._manual_client:
+                    Log.log("Waiting for browser ready...")
+                    await asyncio.wait_for(self._event.wait(), timeout=60)
+
+                await self.send(self._pypeer, to_bytes(WSProto.H_ACK))
 
     async def _reload(self, src_peer, seed):
         assert src_peer == self._pypeer, "Received RELOAD from a non-py peer"
@@ -203,7 +221,7 @@ class WSServer:
         self._event.clear()
 
         await ws.close()
-        self.driver.get(self.build_url())
+        self._driver.get(self.build_url())
         Log.log("Waiting for browser ready...")
         await asyncio.wait_for(self._event.wait(), timeout=5)
         await self.send(self._pypeer, to_bytes(WSProto.H_ACK))
@@ -212,8 +230,7 @@ class WSServer:
         try:
             await self._handler(ws)
         except Exception as e:
-            self._future.set_exception(e)
-            # pass
+            print("[server] Exception: %s" % str(e))
 
     async def _handler(self, ws):
         ua = ws.request_headers.get("user-agent")
@@ -247,8 +264,13 @@ class WSServer:
 
 
 if __name__ == "__main__":
-    ws = WSServer(socket.socket(), manual_client=True)
-    gamefile = "/Users/simo/Projects/qwop/game/QWOP.html"
+    ws = WSServer(
+        sock=socket.socket(),
+        manual_client=True,
+        seed=0,
+        browser="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+        driver="/Users/simo/Projects/qwop/vendor/chromedriver",
+    )
 
     with ws.sock:
-        ws.start(gamefile, True)
+        ws.start()

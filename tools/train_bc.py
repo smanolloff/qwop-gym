@@ -25,7 +25,7 @@ import time
 import tools.common as common
 
 
-def train_model(venv, seed, transitions, n_epochs, out_dir, log_tensorboard):
+def train_model(venv, seed, learner_kwargs, transitions, n_epochs, out_dir, log_tensorboard):
     venv.env_method("reload", seed)
     rng = np.random.default_rng(seed)
     log = None
@@ -34,7 +34,8 @@ def train_model(venv, seed, transitions, n_epochs, out_dir, log_tensorboard):
         os.makedirs(out_dir, exist_ok=True)
         log = logger.configure(folder=out_dir, format_strs=["tensorboard"])
 
-    model = bc.BC(
+    kwargs = dict(
+        learner_kwargs,
         observation_space=venv.observation_space,
         action_space=venv.action_space,
         demonstrations=transitions,
@@ -42,6 +43,7 @@ def train_model(venv, seed, transitions, n_epochs, out_dir, log_tensorboard):
         custom_logger=log,
     )
 
+    model = bc.BC(**kwargs)
     model.train(n_epochs=n_epochs, progress_bar=True)
 
     return model
@@ -136,16 +138,17 @@ def save_model(out_dir, model):
     model.save_policy(policy_file)
 
 
-def train_bc(seed, run_id, n_epochs, recordings, out_dir_template, log_tensorboard):
+def train_bc(seed, run_id, n_epochs, recordings, out_dir_template, learner_kwargs, log_tensorboard):
     recs = common.load_recordings(recordings)
     venv = create_vec_env(seed)
 
     try:
-        out_dir = out_dir_template.format(seed=seed, run_id=run_id)
+        out_dir = common.out_dir_from_template(out_dir_template, seed, run_id)
         transitions = collect_transitions(venv, recs)
         model = train_model(
             venv=venv,
             seed=seed,
+            learner_kwargs=learner_kwargs,
             transitions=transitions,
             n_epochs=n_epochs,
             out_dir=out_dir,

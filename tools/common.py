@@ -86,6 +86,15 @@ def gen_id():
     return str.join("", random.choices(population, k=8))
 
 
+def out_dir_from_template(tmpl, seed, run_id):
+    out_dir = tmpl.format(seed=seed, run_id=run_id)
+
+    if os.path.exists(out_dir):
+        raise Exception("Output directory already exists: %s" % out_dir)
+
+    return out_dir
+
+
 def load_recordings(rec_file_patterns):
     recs = []
 

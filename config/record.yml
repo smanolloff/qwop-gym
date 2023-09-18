@@ -1,8 +1,23 @@
 ---
-seed: ~  # auto-generated if blank
-run_id: ~  # auto-generated if blank
+# [int] Frames per second (use 30 for a genuine QWOP experience)
 fps: 30
+
+# [int] End-game screen duration in seconds
+reset_delay: 1
+
+# [int] Frames per second (use 30 for normal play)
+fps: 30
+
+# [string] File template to save the recorded episodes.
+# (will not record unfinished episodes, or episodes terminated via the "R" key)
+# If the template contains {run_id} or {seed} placeholders,
+# they will be replaced with the corresponding runtime values.
 out_file_template: "data/recordings/recording-{run_id}.rec"
+
+# Env parameters
+# The special "__include__" key allows to load them from another file.
+# Keys listed here take precedence over keys loaded with __include__.
+# See notes in `env.yml` for more info
 env_kwargs:
   __include__: "config/env.yml"
   render_mode: "rgb_array"
@@ -10,6 +25,10 @@ env_kwargs:
   stat_in_browser: true
   game_in_browser: false
   text_in_browser: "Your actions will be recorded"
+
+# List of gym wrappers to use for the env
+# Each list element must be a dict with "module" and "cls" keys
 env_wrappers:
+  # The Verbose wrapper prints the action along with some stats on each step
   - module: "src.env.v1.util.verbose_wrapper"
     cls: "VerboseWrapper"

@@ -25,51 +25,48 @@ import sys
 class WSClient:
     def __init__(self, port):
         self.port = port
-        max_retries = 5
-        sleep = 5  # seconds
-        timeout = 10  # seconds
-        retries = 0
+        self.connect()
 
+    def connect(self):
         while True:
             try:
-                self.ws = client.connect(f"ws://localhost:{port}", open_timeout=timeout)
-                out = to_bytes(WSProto.H_REG) + to_bytes(WSProto.REG_PY)
-                retries = 0
-
-                while True:
-                    if retries >= max_retries:
-                        raise Exception(
-                            "WS registration failed after %s attempts" % retries
-                        )
-
-                    self.ws.send(out)
-                    data = self.ws.recv()
-
-                    if data[0] == WSProto.H_ACK:
-                        Log.log("Registration successful")
-                        return
-
-                    Log.log(
-                        "(%d) Failed to register: %s"
-                        % (retries, np.binary_repr(data[0]))
-                    )
-                    retries += 1
-
+                self._connect_attempt()
+                Log.log("[client] connection successful")
+                break
             except Exception as e:
-                if retries >= max_retries:
-                    raise
-
-                retries += 1
-                Log.log("(%d) Failed to connect: %s" % (retries, e))
-                time.sleep(sleep)
+                Log.log("Failed to connect: %s" % str(e))
+                time.sleep(5)
                 pass
 
-    def send(self, data):
-        self.ws.send(data)
-        return self.ws.recv()
+    def _connect_attempt(self):
+        self.ws = client.connect(f"ws://localhost:{self.port}", open_timeout=10)
+        out = to_bytes(WSProto.H_REG) + to_bytes(WSProto.REG_PY)
 
-    def recv(self):
-        return self.ws.recv()
+        self.ws.send(out)
+        data = self.ws.recv()
+
+        if data[0] != WSProto.H_ACK:
+            exp = np.binary_repr(WSProto.H_ACK)
+            got = np.binary_repr(data[0])
+            raise Exception("Header error: expected %s, got: %s" % (exp, got))
+
+        Log.log("Registration successful")
+
+    def send(self, data):
+        while True:
+            try:
+                self.ws.send(data)
+                return self.ws.recv(timeout=1)
+            except Exception as e:
+                print("[client] Failed to send/receive: %s" % str(e))
+                try:
+                    self.close()
+                except Exception as e1:
+                    print("[client] Failed to close connection: %s" % str(e1))
+
+                Log.log("[client] Reconnecting in 5s...")
+                time.sleep(5)
+                self.connect()
 
     def close(self):
         self.ws.close()

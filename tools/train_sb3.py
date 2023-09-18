@@ -35,7 +35,7 @@ class LogCallback(BaseCallback):
 
 
 def init_model(
-    venv, seed, learner_cls, learner_kwargs, learning_rate, log_tensorboard, out_dir
+    venv, seed, model_load_file, learner_cls, learner_kwargs, learning_rate, log_tensorboard, out_dir
 ):
     alg = None
 
@@ -55,9 +55,12 @@ def init_model(
         case _:
             raise Exception("Unexpected learner_cls: %s" % learner_cls)
 
-    model = alg(
-        **dict(learner_kwargs, env=venv, learning_rate=learning_rate, seed=seed)
-    )
+    if model_load_file:
+        print("Loading %s model from %s" % (alg.__name__, model_load_file))
+        model = alg.load(model_load_file, env=venv)
+    else:
+        kwargs = dict(learner_kwargs, learning_rate=learning_rate, seed=seed)
+        model = alg(env=venv, **kwargs)
 
     if log_tensorboard:
         os.makedirs(out_dir, exist_ok=True)
@@ -98,6 +101,7 @@ def train_sb3(
     learner_cls,
     seed,
     run_id,
+    model_load_file,
     learner_kwargs,
     learner_lr_schedule,
     total_timesteps,
@@ -109,12 +113,13 @@ def train_sb3(
     venv = create_vec_env(seed, max_episode_steps)
 
     try:
-        out_dir = out_dir_template.format(seed=seed, run_id=run_id)
+        out_dir = common.out_dir_from_template(out_dir_template, seed, run_id)
         learning_rate = common.lr_from_schedule(learner_lr_schedule)
 
         model = init_model(
             venv=venv,
             seed=seed,
+            model_load_file=model_load_file,
             learner_cls=learner_cls,
             learner_kwargs=learner_kwargs,
             learning_rate=learning_rate,
@@ -124,6 +129,7 @@ def train_sb3(
 
         model.learn(
             total_timesteps=total_timesteps,
+            reset_num_timesteps=False,
             progress_bar=True,
             callback=[
                 LogCallback(),

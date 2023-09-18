@@ -1,19 +1,39 @@
 ---
+# [int] Frames per second (use 30 for a genuine QWOP experience)
 fps: 30
+
+# [int] End-game screen duration in seconds
 reset_delay: 1
 
-# model_file: "data/QRDQN-1gkmwsyp/model.zip"
-# model_file: "data/QRDQN-zgg3ofy0/model.zip"
+# [string] Path to the file to load the model from
 model_file: "data/QRDQN-jn655wte/model_16000000_steps.zip"
+
+# [string] Module name of the learner alrogirthm (eg. "stable_baselines3")
 model_mod: "sb3_contrib"
+
+# [string] Class name of the learner algorithm (eg. "PPO")
 model_cls: "QRDQN"
+
+# [int] Number times to call `env.step()` per action
+# It should be equal to the value of `frames_per_step` used during training,
+# while `frames_per_step` should be set to 1 here to make the rendering smooth.
 steps_per_step: 4
+
+# Env parameters
+# The special "__include__" key allows to load them from another file.
+# Keys listed here take precedence over keys loaded with __include__.
+# See notes in `env.yml` for more info
 env_kwargs:
   __include__: "config/env.yml"
+  frames_per_step: 1
   auto_draw: true
   stat_in_browser: true
   game_in_browser: true
   text_in_browser: "AI is playing"
+
+# List of gym wrappers to use for the env
+# Each list element must be a dict with "module" and "cls" keys
 env_wrappers:
+  # The Verbose wrapper prints the action along with some stats on each step
   - module: "src.env.v1.util.verbose_wrapper"
     cls: "VerboseWrapper"

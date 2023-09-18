@@ -9,9 +9,10 @@ parameters:
   action: { value: train_qrdqn }
   c:
     parameters:
+      model_load_file: { value: "data/QRDQN-jn655wte/model_16000000_steps.zip" }
       out_dir_template: { value: "data/QRDQN-{run_id}" }
       log_tensorboard: { value: true }
-      total_timesteps: { value: 40e6 }
+      total_timesteps: { value: 24e6 }
       max_episode_steps: { value: 1000 }
       n_checkpoints: { value: 5 }
       learner_kwargs:
@@ -51,4 +52,4 @@ parameters:
           auto_draw: { value: false }
           browser_mock: { value: false }
           r_for_terminate: { value: false }
-          text_in_browser: { value: "Training in progress..." }
+          text_in_browser: { value: "Do not close this window, training in progress..." }

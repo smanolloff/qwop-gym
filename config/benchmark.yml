@@ -1,6 +1,12 @@
 ---
-steps: 100_000
+# [int] Total steps to run the benchmark for
+steps: 1000
+
+# Env parameters
+# The special "__include__" key allows to load them from another file.
+# Keys listed here take precedence over keys loaded with __include__.
+# See notes in `env.yml` for more info
 env_kwargs:
   __include__: "config/env.yml"
   game_in_browser: false
-  text_in_browser: "Performance testing in progress..."
+  text_in_browser: "Performance test in progress..."

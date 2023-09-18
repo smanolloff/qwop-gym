@@ -56,6 +56,7 @@ def main(action, cfg, tag=None):
                 {
                     "seed": cfg.get("seed", None) or common.gen_seed(),
                     "run_id": cfg.get("run_id", None) or common.gen_id(),
+                    "learner_kwargs": cfg.get("learner_kwargs", {}),
                     "n_epochs": cfg.get("n_epochs", 100),
                     "recordings": cfg.get("recordings", ["data/recordings/*.rec"]),
                     "out_dir_template": cfg.get("out_dir_template", "data/BC-{run_id}"),
@@ -133,6 +134,7 @@ def main(action, cfg, tag=None):
                 {
                     "seed": cfg.get("seed", None) or common.gen_seed(),
                     "run_id": cfg.get("run_id", None) or common.gen_id(),
+                    "model_load_file": cfg.get("model_load_file", None),
                     "out_dir_template": cfg.get("out_dir_template", default_template),
                     "log_tensorboard": cfg.get("log_tensorboard", False),
                     "learner_kwargs": cfg.get("learner_kwargs", {}),

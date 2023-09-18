@@ -9,6 +9,7 @@ parameters:
   action: { value: train_dqn }
   c:
     parameters:
+      model_load_file: { value: ~ }
       out_dir_template: { value: "data/DQN-{run_id}" }
       log_tensorboard: { value: true }
       total_timesteps: { value: 10000 }
@@ -51,4 +52,4 @@ parameters:
           auto_draw: { value: false }
           browser_mock: { value: false }
           r_for_terminate: { value: false }
-          text_in_browser: { value: "Training in progress..." }
+          text_in_browser: { value: "Do not close this window, training in progress..." }

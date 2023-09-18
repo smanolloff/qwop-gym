@@ -16,6 +16,7 @@
 
 from .wsproto import WSProto
 import hashlib
+from datetime import datetime
 
 
 class Log:
@@ -71,7 +72,8 @@ class Log:
 
     def log(msg):
         if Log.LEVEL <= 3:
-            print(msg)
+            ts = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            print("[%s] %s" % (ts, msg))
 
     def log_remote(msg, client):
         if not Log.LEVEL <= 3:

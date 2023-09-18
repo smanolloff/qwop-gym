@@ -1,12 +1,43 @@
 ---
-seed: ~  # auto-generated if blank
-run_id: ~  # auto-generated if blank
-n_epochs: 50
+# [int] (optional) Env seed (auto-generated if blank)
+seed: ~
+
+# [string] (optional) Unique ID of this run (auto-generated if blank)
+run_id: ~
+
+# [List<string>] List of paths for the recordings to train with
+# Glob patterns are supported, eg. "data/recordings/*.rec"
 recordings:
-  # glob patterns are also allowed
   - "data/recordings/*.rec"
+
+# [string] Directory template to save the trained model, metadata and
+# tensorboard logs. If the template contains {run_id} or {seed} placeholders,
+# they will be replaced with the corresponding runtime values.
 out_dir_template: "data/BC-{run_id}"
+
+# [bool] Log tensorboard data
 log_tensorboard: true
+
+# [int] Training duration
+n_epochs: 50
+
+# BC algorithm parameters
+# https://imitation.readthedocs.io/en/latest/algorithms/bc.html#api
+learner_kwargs:
+  batch_size: 32
+  minibatch_size: ~
+  ent_weight: 0.001
+  l2_weight: 0.0
+
+# Env parameters
+# The special "__include__" key allows to load them from another file.
+# Keys listed here take precedence over keys loaded with __include__.
+# See notes in `env.yml` for more info
 env_kwargs:
   __include__: "config/env.yml"
   text_in_browser: "Do not close this window, training in progress..."
+
+# List of gym wrappers to use for the env
+# Each list element must be a dict with "module" and "cls" keys
+# (see `spectate.yml` for an example)
+env_wrappers: []

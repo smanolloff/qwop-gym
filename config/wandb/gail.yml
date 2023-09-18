@@ -64,4 +64,4 @@ parameters:
           auto_draw: { value: false }
           browser_mock: { value: false }
           r_for_terminate: { value: false }
-          text_in_browser: { value: "Training in progress..." }
+          text_in_browser: { value: "Do not close this window, training in progress..." }

@@ -88,11 +88,12 @@ class WS {
     this.ws.binaryType = "arraybuffer";
     this.ws.onopen = (_event) => this.register();
     this.ws.onmessage = (event) => this.onmessage(event);
+    this.ws.onclose = (event) => {
+      console.log("Connection closed, reconnecting in 5s...");
+      setTimeout(() => this.connect(port), 5000);
+    };
 
-    // this.ws.onclose = (event) => {
-    //   console.log("REMOTE CLOSED CONNECTION, RELOADING");
-    //   window.location.reload();
-    // };
+    console.log("[ws] connected");
   }
 
   onmessage(event) {
