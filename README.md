@@ -5,7 +5,7 @@ A Gym environment for Bennet Foddy's game called _QWOP_.
 [Give it a try](https://www.foddy.net/Athletics.html) and see why it's such a
 good candidate for Reinforcement Learning :)
 
-![banner-2](./doc/banner-2.gif)
+![banner-3](./doc/banner-3.gif)
 
 ## Getting started
 
@@ -47,8 +47,7 @@ options:
   -c FILE     config file, defaults to config/<action>.yml
 
 action:
-  play              play QWOP!
-  record            play QWOP and record your game actions
+  play              play QWOP, optionally recording actions
   replay            replay recorded game actions
   train_bc          train using Behavioral Cloning (BC)
   train_gail        train using Generative Adversarial Imitation Learning (GAIL)
@@ -56,13 +55,13 @@ action:
   train_ppo         train using Proximal Policy Optimization (PPO)
   train_dqn         train using Deep Q Network (DQN)
   train_qrdqn       train using Quantile Regression DQN (QRDQN)
-  spectate          watch a trained model play QWOP
+  spectate          watch a trained model play QWOP, optionally recording actions
+  benchmark         evaluate the actions/s achievable with this env
   help              print this help message
 
 examples:
   qwop-gym.py play
-  qwop-gym.py -c config/play.yml play
-
+  qwop-gym.py play -c config/record.yml 
 ```
 
 For example, to train a PPO agent, edit [`config/ppo.yml`](./config/ppo.yml) and run:
@@ -92,7 +91,7 @@ python qwop-gym.py spectate
 For imitation learning, first record some of your own games:
 
 ```bash
-python qwop-gym.py record
+python qwop-gym.py play -c config/record.yml 
 ```
 
 Train an imitator via [Behavioral Cloning](https://imitation.readthedocs.io/en/latest/tutorials/1_train_bc.html):

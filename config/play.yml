@@ -23,22 +23,3 @@ env_wrappers:
   # VerboseWrapper prints action and some game stats on each step
   - module: "src.env.v1.util.verbose_wrapper"
     cls: "VerboseWrapper"
-
-  # RecordWrapper records episodes to a file
-  - module: "tools.common"
-    cls: "RecordWrapper"
-    kwargs:
-      # [string] Path to the file to store recorded episodes.
-      rec_file: "data/recordings/recording-1.rec"
-
-      # [bool] Overwrite out_file if already exists
-      overwrite: true
-
-      # [int] (optional) Discard episode if time > `max_time`
-      max_time: 10
-
-      # [int] (optional) Discard episode if distance < `min_distance`
-      min_distance: 3
-
-      # [bool] (optional) Discard episode if incomplete (eg. terminated via "R")
-      complete_only: true
