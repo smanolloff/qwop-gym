@@ -97,7 +97,11 @@ class Log:
         client_name = client.name if client else "??"
 
         if longfmt:
-            return "%s\n[ %s ] %s" % (Log.DELIM_REMOTE, client_name, msg.decode("utf-8"))
+            return "%s\n[ %s ] %s" % (
+                Log.DELIM_REMOTE,
+                client_name,
+                msg.decode("utf-8"),
+            )
         else:
             return "[ %s ] %s" % (client_name, msg.decode("utf-8"))
 
@@ -188,7 +192,15 @@ class Log:
         delim = "-" * 79
 
         if Log.LEVEL == 0:
-            return "%s\n[%s%s] %s\n[%s%s] %s" % (delim, arrow, client_name, line2, arrow, client_name, line3)
+            return "%s\n[%s%s] %s\n[%s%s] %s" % (
+                delim,
+                arrow,
+                client_name,
+                line2,
+                arrow,
+                client_name,
+                line3,
+            )
         else:
             return "[%s%s] %s" % (arrow, client_name, line2)
 

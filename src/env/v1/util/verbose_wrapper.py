@@ -32,6 +32,7 @@ class VerboseWrapper(gym.Wrapper):
         self.last_distance = np.float32(0)
         self.last_time = np.float32(0)
         self.start_time = time.time()
+        self.enabled = True
 
     def reset(self, *args, **kwargs):
         self.n_steps = 0
@@ -43,10 +44,14 @@ class VerboseWrapper(gym.Wrapper):
 
     def step(self, action):
         obs, reward, terminated, info = self.env.step(action)
+
+        if not self.enabled:
+            return obs, reward, terminated, info
+
         self.n_steps += 1
         self.total_reward += reward
 
-        flags = self.env.action_flags[action]
+        flags = self.env.action_cmdflags[action]
 
         if terminated:
             keys = "XXXX"
@@ -90,3 +95,10 @@ class VerboseWrapper(gym.Wrapper):
         self.last_time = info["time"]
 
         return obs, reward, terminated, info
+
+    # Convenience methods for controlling verbosity
+    def disable_verbose_wrapper(self):
+        self.enabled = False
+
+    def enable_verbose_wrapper(self):
+        self.enabled = True

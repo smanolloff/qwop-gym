@@ -51,12 +51,74 @@ class Clock:
         self.last_tick_at = tick_at + sleep_for
 
 
+class RecordWrapper(gym.Wrapper):
+    def __init__(self, env, rec_file, overwrite, max_time, min_distance, complete_only):
+        super().__init__(env)
+
+        if os.path.exists(rec_file) and not overwrite:
+            raise Exception("rec_file already exists: %s" % rec_file)
+
+        print("Recording to %s" % rec_file)
+        self.handle = open(rec_file, "w")
+        self.handle.write("seed=%d\n" % env.seedval)
+        self.overwrite = overwrite
+        self.max_time = max_time or 999
+        self.min_distance = min_distance or 0
+        self.complete_only = complete_only
+        self.actions = []
+        self.discarded_episodes = []
+
+    def step(self, action):
+        obs, reward, terminated, info = self.env.step(action)
+        self.actions.append(str(action))
+
+        if terminated:
+            ep_info = "episode with time=%.2f and distance=%.2f" % (
+                info["time"],
+                info["distance"],
+            )
+            incomplete = self.env.r_for_terminate and action == 15
+
+            # only write actions to file if this was NOT a manual reset
+            if self.complete_only and incomplete:
+                print("Discarded %s (incomplete)" % ep_info)
+                self.discarded_episodes.append(self.actions)
+            elif info["time"] > self.max_time:
+                print("Discarded %s (max_time exceeded)" % ep_info)
+                self.discarded_episodes.append(self.actions)
+            elif info["distance"] < self.min_distance:
+                print("Discarded %s (min_distance not reached)" % ep_info)
+                self.discarded_episodes.append(self.actions)
+            else:
+                # Dump discarded episodes actions only when there is
+                # a regular episode after them
+                if len(self.discarded_episodes) > 0:
+                    print("Dump %d discarded episodes" % len(self.discarded_episodes))
+                    episodes = [ep + ["X"] for ep in self.discarded_episodes]
+                    actions = [a for ep in episodes for a in ep]
+                    self.handle.write("\n".join(actions) + "\n")
+                    self.discarded_episodes = []
+
+                self.handle.write("\n".join(self.actions) + "\n*\n")
+
+                if incomplete:
+                    print("Recorded incomplete %s" % ep_info)
+                else:
+                    print("Recorded %s" % ep_info)
+
+            self.actions = []
+        elif info.get("manual_restart"):
+            self.actions = []
+
+        return obs, reward, terminated, info
+
+
 def expand_env_kwargs(env_kwargs):
     env_include_cfg = env_kwargs.pop("__include__", None)
 
     if env_include_cfg:
         with open(env_include_cfg, "r") as f:
-            env_kwargs = dict(yaml.safe_load(f), **env_kwargs)
+            env_kwargs = yaml.safe_load(f) | env_kwargs
 
     return env_kwargs
 
@@ -126,22 +188,28 @@ def load_recording(recfile):
         assert m, "Failed to parse header for recording: %s" % recfile
         seed = int(m.group(1))
 
-        # episode is a list of actions: [1, 1, 0, 4, 0, 2, ...]
-        episode = []
+        # episode is dict of {"skip": [bool], "actions": [...]}
+        actions = []
+        n_episodes = 0
 
         for line in f:
-            if line.rstrip() == "X":
-                episodes.append(episode)
-                episode = []
-            else:
-                episode.append(int(line))
+            line = line.rstrip()
 
-    if len(episodes) == 0:
+            if line == "*":
+                episodes.append({"skip": False, "actions": actions})
+                n_episodes += 1
+                actions = []
+            elif line == "X":
+                episodes.append({"skip": True, "actions": actions})
+                n_episodes += 1
+                actions = []
+            else:
+                actions.append(int(line))
+
+    if n_episodes == 0:
         print("Empty recording %s" % recfile)
     else:
-        print(
-            "Loaded %d episodes with seed=%d from %s " % (len(episodes), seed, recfile)
-        )
+        print("Loaded %d episodes with seed=%d from %s " % (n_episodes, seed, recfile))
 
     return {"file": recfile, "seed": seed, "episodes": episodes}
 
@@ -183,14 +251,14 @@ def lr_from_schedule(schedule):
             exit(1)
 
 
-def play_model(env, fps, steps_per_step, model):
+def play_model(env, fps, steps_per_step, model, obs):
     done = False
     normfps = 30  # ~ game fps at "normal" speed
-    obs = env.reset()
     t1 = time.time()
     clock = Clock(fps)
     done = False
 
+    print("play start")
     while not done:
         action, _states = model.predict(obs)
         for _ in range(steps_per_step):
@@ -198,6 +266,7 @@ def play_model(env, fps, steps_per_step, model):
             clock.tick()
             if done:
                 break
+    print("play end")
 
 
 def save_model(out_dir, model):

@@ -194,13 +194,20 @@ function toclock(s) {
 
 /** Visualizes game stats on each step. */
 function FN_UPDATE_STATS(dv_in, dv_out) {
-    if (dv_in && dv_in.byteLength > 2) {
-        const steps = dv_in.getUint16(2, LE);
-        const rew = dv_in.getFloat32(4, LE);
-        const tot_rew = dv_in.getFloat32(8, LE);
 
-        document.getElementById("cell-steps").textContent = steps;
-        document.getElementById("cell-tot_reward").textContent = tot_rew.toFixed(2);
+    if (dv_in) {
+        if (dv_in.getUint8(1) & WS.CMD_RST) {
+            DISTANCE_BUFFER.splice(0, DISTANCE_BUFFER.length);
+        }
+
+        if (dv_in.byteLength > 2) {
+            const steps = dv_in.getUint16(2, LE);
+            const rew = dv_in.getFloat32(4, LE);
+            const tot_rew = dv_in.getFloat32(8, LE);
+
+            document.getElementById("cell-steps").textContent = steps;
+            document.getElementById("cell-tot_reward").textContent = tot_rew.toFixed(2);
+        }
     }
 
     if (!dv_out) {
@@ -259,8 +266,8 @@ const TIMESTEP_SIZE = .03333333333333333;
 
 // for calculating average speeds
 // (displayed in stats table)
-const DISTANCE_BUFFER = []
-const DISTANCE_BUFFER_SIZE = 10
+const DISTANCE_BUFFER = [];
+const DISTANCE_BUFFER_SIZE = 10;
 
 // Load the game
 QWOP();

@@ -25,7 +25,9 @@ import time
 import tools.common as common
 
 
-def train_model(venv, seed, learner_kwargs, transitions, n_epochs, out_dir, log_tensorboard):
+def train_model(
+    venv, seed, learner_kwargs, transitions, n_epochs, out_dir, log_tensorboard
+):
     venv.env_method("reload", seed)
     rng = np.random.default_rng(seed)
     log = None
@@ -138,7 +140,15 @@ def save_model(out_dir, model):
     model.save_policy(policy_file)
 
 
-def train_bc(seed, run_id, n_epochs, recordings, out_dir_template, learner_kwargs, log_tensorboard):
+def train_bc(
+    seed,
+    run_id,
+    n_epochs,
+    recordings,
+    out_dir_template,
+    learner_kwargs,
+    log_tensorboard,
+):
     recs = common.load_recordings(recordings)
     venv = create_vec_env(seed)
 

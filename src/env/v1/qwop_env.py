@@ -104,7 +104,7 @@ class QwopEnv(gym.Env):
         r_for_terminate=False,
         seed=None,
         browser_mock=False,
-        loglevel="DEBUG",
+        loglevel="WARN",
         noop=None,
     ):
         seedval = seed or np.random.default_rng().integers(2**31)
@@ -140,7 +140,7 @@ class QwopEnv(gym.Env):
         self._set_keycodes()
 
         self.render_mode = render_mode
-        self.action_space = gym.spaces.Discrete(len(self.action_bytes))
+        self.action_space = gym.spaces.Discrete(len(self.action_cmdflags))
         self.observation_space = gym.spaces.Box(
             shape=(60,), low=-1, high=1, dtype=DTYPE
         )
@@ -174,45 +174,33 @@ class QwopEnv(gym.Env):
             WSProto.CMD_K_P,
         ]
 
-        # Tuples of 0, 1, 2, 3 and 4 pressed keys
-        keycodes_c0 = list(itertools.combinations(self.keycodes, 0))  # 0
-        keycodes_c1 = list(itertools.combinations(self.keycodes, 1))  # 4: Q, W, O, P
-        keycodes_c2 = list(itertools.combinations(self.keycodes, 2))  # 6: QW, QO, ...
-        keycodes_c3 = list(itertools.combinations(self.keycodes, 3))  # 4: QWO, QWP, ...
-        keycodes_c4 = list(itertools.combinations(self.keycodes, 4))  # 1: QWOP
+        # Lists of tuples representing pressed key combinations
+        self.keycodes_c = (
+            list(itertools.combinations(self.keycodes, 0))  # 0
+            + list(itertools.combinations(self.keycodes, 1))  # 4: Q, W, O, P
+            + list(itertools.combinations(self.keycodes, 2))  # 6: QW, QO, ...
+            + list(itertools.combinations(self.keycodes, 3))  # 4: QWO, QWP, ...
+            + list(itertools.combinations(self.keycodes, 4))  # 1: QWOP
+        )
 
-        keyflags_c0 = list(itertools.combinations(self.keyflags, 0))
-        keyflags_c1 = list(itertools.combinations(self.keyflags, 1))
-        keyflags_c2 = list(itertools.combinations(self.keyflags, 2))
-        keyflags_c3 = list(itertools.combinations(self.keyflags, 3))
-        keyflags_c4 = list(itertools.combinations(self.keyflags, 4))
+        self.keyflags_c = (
+            list(itertools.combinations(self.keyflags, 0))  # 0
+            + list(itertools.combinations(self.keyflags, 1))  # 4: Q, W, O, P
+            + list(itertools.combinations(self.keyflags, 2))  # 6: QW, QO, ...
+            + list(itertools.combinations(self.keyflags, 3))  # 4: QWO, QWP, ...
+            + list(itertools.combinations(self.keyflags, 4))  # 1: QWOP
+        )
 
-        keycodes_c = keycodes_c0 + keycodes_c1 + keycodes_c2 + keycodes_c3 + keycodes_c4
-        keyflags_c = keyflags_c0 + keyflags_c1 + keyflags_c2 + keyflags_c3 + keyflags_c4
-
-        self.keycodes_c = keycodes_c
-        self.keyflags_c = keyflags_c
-
-        # convert each tuple an integer (key flags) with an STP flag set
-        self.action_flags = [
-            functools.reduce(lambda a, e: a | e, t, WSProto.CMD_STP) for t in keyflags_c
-        ]
-
-        if self.auto_draw:
-            # add draw flag to each command
-            self.action_flags = [x | WSProto.CMD_DRW for x in self.action_flags]
-
-        # convert each integer to a 2-bytestring: <CMD header> + <CMD flags>
-        self.action_bytes = [
-            to_bytes(WSProto.H_CMD) + to_bytes(k) for k in self.action_flags
+        # Key combinations represented as WSProto cmdflags
+        self.action_cmdflags = [
+            functools.reduce(lambda a, e: a | e, t, 0) for t in self.keyflags_c
         ]
 
         if self.r_for_terminate:
             # used in manual play:
             # replace the Q+W+O+P key-combination with the "R" key
-            # and make it terminate the env instead (to be restarted)
-            keycodes_c4 = [(ord("r"),)]
-            keycodes_c[-1] = (ord("r"),)
+            # and make it terminate the env instead
+            self.keycodes_c[-1] = (ord("r"),)
 
     def seed(self, seed=None):
         # Can't re-seed -- the game has already been initialized
@@ -231,7 +219,7 @@ class QwopEnv(gym.Env):
         assert seed >= 0 and seed <= np.iinfo(np.int32).max
         self.seedval = seed
         self._restart_game(reload_page=True)
-        self.reset()
+        return self.reset()
 
     def _reset_env(self):
         self.steps = 0
@@ -270,8 +258,14 @@ class QwopEnv(gym.Env):
         return reaction.ndata, reward, terminated, info
 
     def _perform_action(self, action):
+        cmdflags = WSProto.CMD_STP | self.action_cmdflags[action]
+
+        if self.auto_draw:
+            cmdflags |= WSProto.CMD_DRW
+
         data = (
-            self.action_bytes[action]
+            to_bytes(WSProto.H_CMD)
+            + to_bytes(cmdflags)
             + to_bytes(self.steps, 2)
             + struct.pack("=f", self.last_reward)
             + struct.pack("=f", self.total_reward)

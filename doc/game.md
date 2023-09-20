@@ -59,8 +59,8 @@ Passing the below options as url parameters will control various game aspects:
 
 ## About the QWOP source code
 
-Unfortunately, QWOP's source code is not officially published and I won't
-distribute it as a part of this project.
+Unfortunately, QWOP's source code is not officially published and can't be
+distributed as a part of this project.
 
 However, the source code is available
 [here](https://www.foddy.net/QWOP.min.js), so you can download and apply the
@@ -72,4 +72,3 @@ curl -sL https://www.foddy.net/QWOP.min.js | python src/game/patcher.py
 
 The above command will download the original source code and save a _modified_
 version of it to `src/game/QWOP.js` (which is what you need to start the env).
-

@@ -76,6 +76,9 @@ class WSServer:
         self._pypeer.other = self._jspeer
         self._peers = {}
         self._manual_client = manual_client
+        self._window = None
+        self._driver = None
+        self._initialized = False
         self._shutting_down = False
 
     def cleanup_and_exit(self, future):
@@ -98,9 +101,12 @@ class WSServer:
             while not self._shutting_down:
                 loop.run_until_complete(self._start(stop))
 
-            self._driver.quit()
+            if self._driver:
+                self._driver.quit()
 
     async def _start(self, stop):
+        self._stop = stop
+
         async with websockets.serve(self.handler, sock=self.sock) as server:
             self.port = server.sockets[0].getsockname()[1]
 
@@ -162,10 +168,15 @@ class WSServer:
         self._driver = webdriver.Chrome(service=service, options=options)
         self._window = self._driver.window_handles[0]
         self._driver.get(self.build_url())
+        self._initialized = True
 
     def _maybe_relaunch_browser(self):
+        if not self._initialized:
+            self.cleanup_and_exit(self._stop)
+            return
+
         try:
-            if self._window in self._driver.window_handles:
+            if self._driver and self._window in self._driver.window_handles:
                 # window is alive
                 return
             else:

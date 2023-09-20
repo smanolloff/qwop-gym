@@ -1,6 +1,6 @@
 ---
 # [int] Total steps to run the benchmark for
-steps: 1000
+steps: 10000
 
 # Env parameters
 # The special "__include__" key allows to load them from another file.

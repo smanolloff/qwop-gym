@@ -20,8 +20,8 @@ To start the env:
 from src.env.v1.qwop_env import QwopEnv
 
 env = QwopEnv(
-  browser="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-  driver="/Users/simo/Projects/qwop/vendor/chromedriver",
+  browser="/path/to/browser",
+  driver="/path/to/chromedriver",
   auto_draw=True,
   stat_in_browser=True,
 )
@@ -41,7 +41,7 @@ gym.envs.register(
 env = gym.make("QwopEnv-v1")
 ```
 
-## 🕹️ Actions
+## <a id="actions"></a> 🕹️ Actions
 
 There are 16 discrete actions in the game, corresponding to 0, 1, 2, 3 or
 4-key combinations of the below keys:
@@ -54,11 +54,11 @@ There are 16 discrete actions in the game, corresponding to 0, 1, 2, 3 or
 Performing an action is done via the env's `step` method, which expects an
 integer as input, so each action is mapped to a key (combination) as follows:
 
-0=(none), 1=Q, 2=W, 3=O, 4=P, 5=Q+W, ..., 15=Q+W+O+P
+`0`=(none), `1`=Q, `2`=W, `3`=O, `4`=P, `5`=Q+W, `6`=Q+O, ..., `15`=Q+W+O+P
 
-Optionally, the `15` action (Q+W+O+P) can be re-mapped to the "R" key in order
+Optionally, the `15` action (Q+W+O+P) can be re-mapped to the R key in order
 to immediately terminate the env (ie. press "R" for restart). This behaviour
-is controlled by the `r_for_terminate` env constructor argument.
+is controlled by the `r_for_terminate` env parameter.
 
 To perform an action:
 
@@ -67,7 +67,7 @@ To perform an action:
 (observation, reward, done, info) = env.step(4)
 ```
 
-## 👁️ Observations
+## <a id="observations"></a> 👁️ Observations
 
 On each step, the browser sends the following data to the RL env:
 
@@ -118,7 +118,7 @@ head_y = env.pos_y.denormalize(head_ny)
 print("Head (x, y) = (%.2f, %.2f)" % (head_x, head_y))
 ```
 
-## 🍩 Rewards
+## 🍩 <a id="rewards"></a> Rewards
 
 The reward on each step is equal to:
 
@@ -132,7 +132,7 @@ where:
 * `Δt` is the change in time elapsed since last step
 * `Cs` and `Ct` are (configurable) constants
 
-## 💀 Termination
+## 💀 <a id="termination"></a> Termination
 
 The env will terminate whenever the athlete:
 * _steps_ or _falls_ beyond the 100-meter mark (considered a success)
@@ -143,7 +143,7 @@ The env will terminate whenever the athlete:
 \* In rare cases, the athlete goes past the finish line without the game
 detecting ground contact due to a bug, so a 105m end-game condition was added.
 
-## 🔌 Shutting down
+## 🔌 <a id="shutting-down"></a> Shutting down
 
 For a graceful shutdown:
 
@@ -159,11 +159,13 @@ communication protocol used.
 
 ### Logging
 
-To enable logging, change the `LEVEL` var in [log.py](./src/env/v1/util/log.py).
+To enable logging, pass the appropriate `loglevel` to the env constructor.
+(possible are `"DEBUG"`, `"INFO"`, `"WARN"` and `"ERROR"`)
 
-Setting `LEVEL=0` will print a user-friendly text representation of messages
-sent over the websocket channel which is usually hard to debug.
-Read the sections below for more details on the server/client communication.
+Setting `loglevel="DEBUG"` will also print a user-friendly text representation
+of messages sent over the websocket channel, which can really help to
+troubleshoot communication-related issues. Read the sections below for more
+details on the server/client communication.
 
 ### Bootstrap process
 
@@ -184,9 +186,7 @@ here are some examples:
 | Message description | byte 1 | byte 2 | bytes 3+ |
 |-------------|--------|--------|----------|
 | Registration request | `0` | (id) | |
-| Registration accepted | `1` | | |
-| Registration rejected | `2` | | |
-| Game command: "W" key | `3` | `0b00000101` | step (1 byte) | reward (4 bytes) | total_reward (4 bytes)
+| Game command: "W" key | `3` | `0b00000101` | step (1 byte) + reward (4 bytes) + total_reward (4 bytes) |
 | Game command: restart game | `3` | `0b00100001` | |
 | Game command: take screenshot | `3` | `0b10000000` | |
 | Game response: observation | `4` | `0b00000000` | time (4 bytes) + distance (4 bytes) + body state (60 bytes) |

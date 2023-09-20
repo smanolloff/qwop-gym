@@ -23,30 +23,74 @@ class Replayer:
     def __init__(self, actions):
         self.actions = actions
         self.iterator = iter(actions)
+        self.i = 0
 
     def predict(self, _obs):
+        self.i += 1
         return (next(self.iterator), None)
 
 
-def replay(fps, recordings, reset_delay):
+def bulk_skip(env, steps_per_step, model):
+    done = False
+
+    # Disable auto-draw
+    old_auto_draw = env.unwrapped.auto_draw
+    env.unwrapped.auto_draw = False
+
+    if hasattr(env, "disable_verbose_wrapper"):
+        env.disable_verbose_wrapper()
+
+    print("skip start")
+    while not done:
+        action, _ = model.predict(None)
+        for _ in range(steps_per_step):
+            _, _, done, _ = env.step(action)
+            if done:
+                break
+    print("skip env")
+
+    if hasattr(env, "enable_verbose_wrapper"):
+        env.enable_verbose_wrapper()
+
+    env.unwrapped.auto_draw = old_auto_draw
+
+
+def replay(fps, recordings, reset_delay, steps_per_step):
     env = None
+    episode_ended_at = None
 
     try:
         for rec in common.load_recordings(recordings):
+            print("Replaying episodes from %s" % rec["file"])
+
             if env:
-                env.reload(rec["seed"])
+                obs = env.reload(rec["seed"])
             else:
                 env = gym.make("QwopEnv-v1", seed=rec["seed"])
-                env.reset()
+                obs = env.reset()
 
-            for i, episode in enumerate(rec["episodes"], start=1):
-                print("Replaying episode %d from %s" % (i, rec["file"]))
-                model = Replayer(episode)
-                common.play_model(env, fps, 1, model)
-                time.sleep(reset_delay)
+            for i, episode in enumerate(rec["episodes"], 1):
+                model = Replayer(episode["actions"])
+
+                if episode["skip"]:
+                    print("Skipping episode %d" % i)
+                    bulk_skip(env, steps_per_step, model)
+                    obs = env.reset()
+                else:
+                    if episode_ended_at:
+                        sleep_for = reset_delay - (time.time() - episode_ended_at)
+                        if sleep_for > 0:
+                            time.sleep(sleep_for)
+                    print("Playing episode %d" % i)
+
+                    common.play_model(env, fps, steps_per_step, model, obs)
+                    episode_ended_at = time.time()
+                    obs = env.reset()
 
                 # Recorded episodes should termiate at exactly the last action
                 assert next(model.iterator, None) is None, f"Trailing actions"
+
+        time.sleep(reset_delay)
     finally:
         if env:
             env.close()

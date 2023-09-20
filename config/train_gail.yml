@@ -88,6 +88,5 @@ env_kwargs:
   text_in_browser: "Do not close this window, training in progress..."
 
 # List of gym wrappers to use for the env
-# Each list element must be a dict with "module" and "cls" keys
-# (see `spectate.yml` for an example)
+# Each list element must be a dict with "module", "cls" and "kwargs" keys
 env_wrappers: []

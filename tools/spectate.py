@@ -43,7 +43,8 @@ def spectate(
 
     try:
         while True:
-            common.play_model(env, fps, steps_per_step, model)
+            obs = env.reset()
+            common.play_model(env, fps, steps_per_step, model, obs)
             time.sleep(reset_delay)
     finally:
         env.close()

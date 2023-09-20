@@ -18,17 +18,10 @@ def main(action, cfg, tag=None):
         case "play":
             from tools.play import play
 
-            play(fps=cfg.get("fps", 30))
-        case "record":
-            from tools.record import record
-
-            default_template = "data/recordings/recording-{run_id}.rec"
-
-            record(
+            play(
                 seed=cfg.get("seed", None) or common.gen_seed(),
                 run_id=cfg.get("run_id", None) or common.gen_id(),
                 fps=cfg.get("fps", 30),
-                out_file_template=cfg.get("out_file_template", default_template),
             )
         case "replay":
             from tools.replay import replay
@@ -37,6 +30,7 @@ def main(action, cfg, tag=None):
                 fps=cfg.get("fps", 30),
                 reset_delay=cfg.get("reset_delay", 1),
                 recordings=cfg.get("recordings", "data/recordings/*.rec"),
+                steps_per_step=cfg.get("steps_per_step", 1),
             )
         case "spectate":
             from tools.spectate import spectate
@@ -186,8 +180,7 @@ if __name__ == "__main__":
     parser.usage = "%(prog)s [options] <action>"
     parser.epilog = """
 action:
-  play              play QWOP!
-  record            play QWOP and record your game actions
+  play              play QWOP, optionally recording actions
   replay            replay recorded game actions
   train_bc          train using Behavioral Cloning (BC)
   train_gail        train using Generative Adversarial Imitation Learning (GAIL)
@@ -195,7 +188,7 @@ action:
   train_ppo         train using Proximal Policy Optimization (PPO)
   train_dqn         train using Deep Q Network (DQN)
   train_qrdqn       train using Quantile Regression DQN (QRDQN)
-  spectate          watch a trained model play QWOP
+  spectate          watch a trained model play QWOP, optionally recording actions
   benchmark         evaluate the actions/s achievable with this env
   help              print this help message
 

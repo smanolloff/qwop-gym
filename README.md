@@ -72,11 +72,8 @@ python qwop-gym.py train_ppo
 ```
 
 > [!WARNING]
-> The browser window must not be closed during RL training. This is because
-> no rendering occurs during the process, although the game is actually
-> running at very high speeds. Also, if your computer goes to sleep or
-> otherwise suspends the browser process, the websocket connection will timeout
-> and the training will be aborted.
+> Although no rendering occurs during training, the browser window must remain
+> open as the game is actually running at very high speeds behind the curtains.
 
 Visualize tensorboard graphs:
 
@@ -118,9 +115,9 @@ wandb agent <username>/qwop/<sweep>
 ``` 
 
 You can check out my own W&B QWOP project [here](https://wandb.ai/s-manolloff/qwop).
-Keep in mind I have not put much effort in writing meaningful names or
+Keep in mind that I have not put much effort in writing meaningful names or
 descriptions to my sweeps/runs, plus it contains runs from older iterations
-of the env, which might make it confusing. At the very least, you can find
+of the env, which might look confusing. At the very least, you can find
 model artifacts (zip files) of some top performing agents.
 
 ## Developer documentation
@@ -152,7 +149,7 @@ benchmarking a variety of RL algorithms
 * QWOP's original JS source code is barely modified: 99% of all extra
 functionality is designed as a plugin, bundled separately and only a "diff"
 of QWOP.min.js is published here (in respect to Benett Foddy's kind request
-to refrain from publishing the QWOP source code as parts of it are _not_
+to refrain from publishing the QWOP source code as part of is _not_
 open-source).
 
 ## Caveats
@@ -160,20 +157,19 @@ open-source).
 The below list highlights some areas in which the project could use some
 improvements:
 
-* exception handling in `server.py`'s `_start()` method is flawed as the
-code simply hangs in case of a browser start error (eg. wrong path).
-* the OS puts some pretty rough restrictions on the web browser's rendering as
-soon as it's put in the background (on OS X at least). Ideally, the browser
-should run in a headless mode, but I couldn't find a WebGL-compatible headless
-browser.
+* the OS may put some pretty rough restrictions on the web browser's rendering
+as soon as it's put in the background (on OS X at least). Ideally, the browser
+should run in a headless mode, but I couldn't find a headless browser that can
+support WebGL.
 * `gym` is deprecated since October 2022 and this project should be migrated to
-`gymnasium`. This will be possible once
-[this](https://github.com/HumanCompatibleAI/imitation/pull/735) blocker gets
-out of the way.
+`gymnasium` as soon as
+[this](https://github.com/HumanCompatibleAI/imitation/pull/735) is out of the
+way.
 * `wandb` uses a monkey-patch for collecting tensorboard logs which does not
 work well with GAIL/AIRL/BC (and possibly other algos from `imitation`). As a
 result, graphs in wandb have weird names. This is mostly an issue with `wandb`
-and/or `imitation` libraries, however there may be a way to work around this.
+and/or `imitation` libraries, however there could be a way to work around this
+here.
 
 ## Contributing
 

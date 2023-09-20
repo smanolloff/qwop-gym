@@ -55,13 +55,13 @@ class WSClient:
         while True:
             try:
                 self.ws.send(data)
-                return self.ws.recv(timeout=5)
+                return self.ws.recv(timeout=3)
             except Exception as e:
-                self.logger.error("Failed to send/receive: %s" % str(e))
+                self.logger.warn("Failed to send/receive: %s" % str(e))
                 try:
                     self.close()
                 except Exception as e1:
-                    self.logger.error("Failed to close connection: %s" % str(e1))
+                    self.logger.warn("Failed to close connection: %s" % str(e1))
 
                 self.logger.info("Reconnecting in 5s...")
                 time.sleep(5)

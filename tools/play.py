@@ -14,16 +14,24 @@
 # limitations under the License.
 # =============================================================================
 
+import os
+import time
 import gym
 import gym.utils.play
 
+import tools.common as common
 
-def play(fps):
-    env = gym.make("QwopEnv-v1")
+
+def play(seed, run_id, fps):
+    env = gym.make("QwopEnv-v1", seed=seed)
+    rec_file = None
 
     try:
         # Unfortunately, this will immediately reset on termination
         # (gym.utils.play() does not allow control over this)
         gym.utils.play.play(env, fps=fps)
     finally:
+        if rec_file:
+            print("Recording saved as %s" % rec_file)
+
         env.close()

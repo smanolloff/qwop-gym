@@ -35,7 +35,14 @@ class LogCallback(BaseCallback):
 
 
 def init_model(
-    venv, seed, model_load_file, learner_cls, learner_kwargs, learning_rate, log_tensorboard, out_dir
+    venv,
+    seed,
+    model_load_file,
+    learner_cls,
+    learner_kwargs,
+    learning_rate,
+    log_tensorboard,
+    out_dir,
 ):
     alg = None
 

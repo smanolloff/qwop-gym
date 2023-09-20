@@ -9,3 +9,4 @@ __pycache__/
 /src/game/QWOP.js
 /doc/demo.mp4
 /doc/banner.gif
+/config/spectate_record.yml
