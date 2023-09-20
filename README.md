@@ -119,7 +119,7 @@ descriptions to my sweeps/runs, plus it contains runs from older iterations
 of the env, which might look confusing. At the very least, you can find
 model artifacts (zip files) of some top performing agents.
 
-Check out this [youtube video](https://www.youtube.com/watch?v=kWlAQ5e81zo) for
+Check out this [youtube video](https://www.youtube.com/watch?v=Y62KMCMxAqA) for
 a showcase of (some of) my trained agents.
 
 ![banner](./doc/banner.gif)
