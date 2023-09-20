@@ -5,7 +5,7 @@ A Gym environment for Bennet Foddy's game called _QWOP_.
 [Give it a try](https://www.foddy.net/Athletics.html) and see why it's such a
 good candidate for Reinforcement Learning :)
 
-![banner](https://github.com/smanolloff/qwop-gym/assets/6965111/48ef4cb4-b533-4772-afc9-a0651cfd6daa)
+![banner-2](./doc/banner-2.gif)
 
 ## Getting started
 
@@ -119,6 +119,8 @@ Keep in mind that I have not put much effort in writing meaningful names or
 descriptions to my sweeps/runs, plus it contains runs from older iterations
 of the env, which might look confusing. At the very least, you can find
 model artifacts (zip files) of some top performing agents.
+
+![banner](./doc/banner.gif)
 
 ## Developer documentation
 
