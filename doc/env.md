@@ -161,8 +161,9 @@ of the pressed keys:
 
 ![play](./play.png)
 
-![train](./train.png)
 ![replay](./replay.png)
+
+![train](./train.png)
 
 ## <a id="resetting"></a> ♻️ Resetting
 
