@@ -9,14 +9,14 @@ good candidate for Reinforcement Learning :)
 
 ### Features
 
-1. A call to `.step()` advances exactly N game frames (configurable)
-1. Option to disable WebGL rendering for improved performance
-1. Satisfies the Markov property \*
-1. State extraction for a slim observation of 60 bytes
-1. Real-time visualization of various game stats (optional)
-1. Additional in-game controls for easier debugging
+* A call to `.step()` advances exactly N game frames (configurable)
+* Option to disable WebGL rendering for improved performance
+* Satisfies the Markov property \*
+* State extraction for a slim observation of 60 bytes
+* Real-time visualization of various game stats (optional)
+* Additional in-game controls for easier debugging
 
-\* given the state includes the steps since last hard reset, see ![resetting](./doc/env.png#resetting)
+\* given the state includes the steps since last hard reset, see [♻️ Resetting](./doc/env.md#resetting)
 
 ## Getting started
 
