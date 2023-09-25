@@ -71,4 +71,4 @@ curl -sL https://www.foddy.net/QWOP.min.js | python src/game/patcher.py
 ```
 
 The above command will download the original source code and save a _modified_
-version of it to `src/game/QWOP.js` (which is what you need to start the env).
+version of it to `src/game/QWOP.min.js` (which is what you need to start the env).

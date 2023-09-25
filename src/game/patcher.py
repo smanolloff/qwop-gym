@@ -72,7 +72,7 @@ if __name__ == "__main__":
             raise Exception("Could not find substring '%s'" % old)
         source = source.replace(old, new)
 
-    outfile = os.path.join(os.path.dirname(__file__), "QWOP.js")
+    outfile = os.path.join(os.path.dirname(__file__), "QWOP.min.js")
     print("Wrote %s" % outfile)
     with open(outfile, "w") as f:
         f.write(source)

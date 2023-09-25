@@ -6,6 +6,6 @@ __pycache__/
 /wandb
 /data
 /tmp
-/src/game/QWOP.js
+/src/game/QWOP.min.js
 /doc/demo.mp4
 /config/spectate_record.yml
