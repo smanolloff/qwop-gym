@@ -1,0 +1,20 @@
+@startuml "play"
+
+title Training an agent\n(1 step example)
+
+autoactivate on
+
+participant train_ppo.py as script
+participant QwopEnv as env
+participant Browser as browser
+
+note over script: Starts a PPO learner
+
+script -> env: <font color="gray"><i>2 = "W"</i></font>\n.step(2)
+env -> browser: (data)
+note over browser: no render
+browser --> env: (obs data)
+env --> script: (obs, rew, term, info)
+deactivate script
+
+@enduml

@@ -30,7 +30,22 @@ class Replayer:
         return (next(self.iterator), None)
 
 
-def bulk_skip(env, steps_per_step, model):
+# This is needed as episodes which did not satisfy the recording filter
+# were also recorded to prevent replay inconsistency (ie. actions leading
+# to a different outcome during replay).
+#
+# Example:
+# If 3 episodes were recorded:
+# 1. skip (min_distance not reached)
+# 2. skip (max_time exceeded)
+# 3. ok
+# We must store and replay all 3 episodes, even though the first 2 are
+# marked as "skipped". Otherwise, replaying actions from ep. 3 directly might
+# lead to a completely different outcome than originally observed.
+#
+# We fast-forward the "skip" episodes by disabling auto-draw and calling
+# .step() as fast as possible
+def skip_episode(env, steps_per_step, model):
     done = False
 
     # Disable auto-draw
@@ -74,7 +89,7 @@ def replay(fps, recordings, reset_delay, steps_per_step):
 
                 if episode["skip"]:
                     print("Skipping episode %d" % i)
-                    bulk_skip(env, steps_per_step, model)
+                    skip_episode(env, steps_per_step, model)
                     obs = env.reset()
                 else:
                     if episode_ended_at:

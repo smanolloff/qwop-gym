@@ -7,6 +7,17 @@ good candidate for Reinforcement Learning :)
 
 ![banner-3](./doc/banner-3.gif)
 
+### Features
+
+1. A call to `.step()` advances exactly N game frames (configurable)
+1. Option to disable WebGL rendering for improved performance
+1. Satisfies the Markov property \*
+1. State extraction for a slim observation of 60 bytes
+1. Real-time visualization of various game stats (optional)
+1. Additional in-game controls for easier debugging
+
+\* given the state includes the steps since last hard reset, see ![resetting](./doc/env.png#resetting)
+
 ## Getting started
 
 1. Install [Python](https://www.python.org/downloads/) 3.10
@@ -140,8 +151,8 @@ In comparison, qwop-gym offers several key features:
 * the env is _performant_ - perfect for on-policy algorithms as observations
 can be collected at great speeds (more than 2000 observations/sec on an Apple
 M2 CPU - orders of magnitute faster than the other QWOP RL envs)
-* the env is _deterministic_ - randomness and race conditions have been removed
-and all recorded episodes are 100% replayable
+* the env satisfies the _Markov property_ - randomness and race conditions have
+been removed and recorded episodes are 100% replayable
 * the env has a _simple reward model_ and compared to other QWOP envs, it is
 less biased, eg. no special logic for stuff like _knee bending_,
 _low torso height_, _vertical movement_, etc.

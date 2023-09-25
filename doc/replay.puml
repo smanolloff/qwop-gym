@@ -1,0 +1,15 @@
+@startuml "replay"
+
+autoactivate on
+
+participant replay.py as script
+participant QwopEnv as env
+participant Browser as browser
+
+script -> env: <font color="gray"><i>2 = "W"</i></font>\n.step(2)
+env -> browser: (data)
+note over browser: WebGL render
+browser --> env: (data)
+env --> script: (obs, rew, term, info)
+
+@enduml

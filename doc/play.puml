@@ -1,0 +1,31 @@
+@startuml "play"
+
+title Playing the game
+
+autoactivate on
+
+actor Human as human
+participant play.py as script
+participant QwopEnv as env
+participant Browser as browser
+
+note over script: Connects keyboard input\nto pygame window
+
+human -> script: "W" pressed
+script -> env: <font color="gray"><i>2 = "W"</i></font>\n.step(2)
+env -> browser: (data)
+note over browser: no render
+browser --> env: (obs data)
+env --> script: (obs, rew, term, info)
+
+script -> env: .render()
+env -> browser: (data)
+note over browser: WebGL render\n(not visible)
+browser --> env: (""JPEG"" data)
+env --> script: (""PIL.Image"" data)
+note over script: renders image\nin script window
+deactivate script
+
+human --> script: (sees new frame)
+
+@enduml

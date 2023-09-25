@@ -151,6 +151,53 @@ For a graceful shutdown:
 env.close()
 ```
 
+## <a id="rendering"></a> 🖼️ Rendering
+
+At its core, QWOP frames are rendered by WebGL.
+
+However, re-rendering is sometimes needed in case of a human playing, as the
+pygame window (which receives the keyboard input) should also render the result
+of the pressed keys:
+
+![play](./doc/play.png)
+
+![train](./doc/train.png)
+![replay](./doc/replay.png)
+
+## <a id="resetting"></a> ♻️ Resetting
+
+This env supports two reset modes: _soft_ and _hard_.
+
+In both cases, QwopEnv instance variables are reset and the difference lies in
+how QWOP reset is performed.
+
+
+### Soft resets
+
+**Soft** resets instruct the game engine to start a new game. Repeating the
+exact same actions after a soft reset _may_ result in a different outcome.
+
+**Soft** resets are lightweight, fast and unobtrusive. They are enabled by
+default.
+
+For most intents and purposes, soft resets should be enough, as they provide
+a _nearly_ deterministic env - a state-action will yield a predictable next
+state in ~99.99% of the times (empirically measured).
+
+### Hard resets
+
+**Hard** re-load the web page (QWOP.html) ie. the entire game engine is
+re-initialized. Repeating the exact same actions after a hard reset _will_
+result in the exact same outcome.
+
+**Hard** resets are cumbersome and more obtrusive (each page reload causes
+a visible flicker). To enable it, pass the `reload_on_reset=True` keyword
+argument to the QwopEnv constructor.
+
+With this reset mode, the environment is satisfying the Markov principle,
+given the step number is part of the state: an action `a` at state `s` will
+always yield one specific state `s+1`.
+
 ## Troubleshooting
 
 A good place to start would be to enable some logging and familiarize yourself
