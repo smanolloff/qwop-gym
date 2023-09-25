@@ -159,10 +159,10 @@ However, re-rendering is sometimes needed in case of a human playing, as the
 pygame window (which receives the keyboard input) should also render the result
 of the pressed keys:
 
-![play](./doc/play.png)
+![play](./play.png)
 
-![train](./doc/train.png)
-![replay](./doc/replay.png)
+![train](./train.png)
+![replay](./replay.png)
 
 ## <a id="resetting"></a> ♻️ Resetting
 
