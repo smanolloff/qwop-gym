@@ -8,7 +8,7 @@ run_id: ~
 # [List<string>] List of paths for the recordings to train with
 # Glob patterns are supported, eg. "data/recordings/*.rec"
 recordings:
-  - "data/recordings/*.rec"
+  - "data/recordings/1syeor3a-12000000.rec"
 
 # [string] Directory template to save the trained model, metadata and
 # tensorboard logs. If the template contains {run_id} or {seed} placeholders,
@@ -19,7 +19,7 @@ out_dir_template: "data/BC-{run_id}"
 log_tensorboard: true
 
 # [int] Training duration
-n_epochs: 50
+n_epochs: 500
 
 # BC algorithm parameters
 # https://imitation.readthedocs.io/en/latest/algorithms/bc.html#api
@@ -35,6 +35,7 @@ learner_kwargs:
 # See notes in `env.yml` for more info
 env_kwargs:
   __include__: "config/env.yml"
+  frames_per_step: 4
   text_in_browser: "Do not close this window, training in progress..."
 
 # List of gym wrappers to use for the env

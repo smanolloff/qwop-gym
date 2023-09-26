@@ -232,7 +232,7 @@ class WSServer:
 
     async def _reload(self, src_peer, seed):
         assert src_peer == self._pypeer, "Received RELOAD from a non-py peer"
-        self.logger.info("Re-loading web-page, new seed: %s" % seed)
+        self.logger.info("Reloading browser page with new seed: %s" % seed)
 
         self.seed = seed
 

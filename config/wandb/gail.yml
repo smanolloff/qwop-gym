@@ -1,6 +1,6 @@
 ---
 program: wandb-agent.py
-project: qwop
+project: qwop-gym
 method: grid
 metric:
   name: rollout/ep_rew_mean

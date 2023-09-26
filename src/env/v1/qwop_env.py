@@ -111,6 +111,8 @@ class QwopEnv(gym.Env):
         assert seedval >= 0 and seedval <= np.iinfo(np.int32).max
         self.seedval = int(seedval)
 
+        self.frames_per_step = frames_per_step
+
         if browser_mock:
             self.client = WSClientMock()
         else:
@@ -165,6 +167,8 @@ class QwopEnv(gym.Env):
         self.last_reaction = self.noop_reaction
         self.last_reward = DTYPE(0)
         self.total_reward = DTYPE(0)
+
+        self.logger.info("Initialized with seed: %d" % self.seedval)
 
     def _set_keycodes(self):
         self.keycodes = [ord(x) for x in ["q", "w", "o", "p"]]
@@ -306,7 +310,7 @@ class QwopEnv(gym.Env):
         ds = reaction.distance - last_reaction.distance
         dt = reaction.time - last_reaction.time
         v = ds / dt
-        rew = v * self.speed_rew_mult - dt * self.time_cost_mult
+        rew = v * self.speed_rew_mult - dt * self.time_cost_mult / self.frames_per_step
 
         if reaction.game_over:
             if reaction.is_success:

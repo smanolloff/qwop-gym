@@ -1,6 +1,6 @@
 ---
 program: wandb-agent.py
-project: qwop
+project: qwop-gym
 method: grid
 metric:
   name: rollout/ep_rew_mean
@@ -12,7 +12,7 @@ parameters:
       model_load_file: { value: ~ }
       out_dir_template: { value: "data/QRDQN-{run_id}" }
       log_tensorboard: { value: true }
-      total_timesteps: { value: 12e6 }
+      total_timesteps: { value: 9e6 }
       max_episode_steps: { value: 1000 }
       n_checkpoints: { value: 5 }
       learner_kwargs:
@@ -29,13 +29,7 @@ parameters:
           exploration_fraction: { value: 0.5 }
           exploration_initial_eps: { value: 0.2 }
           exploration_final_eps: { value: 0.001 }
-      learner_lr_schedule:
-        parameters:
-          fn: { value: "const" }
-          initial_value: { value: 0.001 }
-          step: { value: 0.75 }
-          decays: { value: 15 }
-          min_value: { value: 1e-5 }
+      learner_lr_schedule: { value: "const_0.001" }
       env_kwargs:
         parameters:
           driver: { value: "/Users/simo/Projects/qwop/vendor/chromedriver" }

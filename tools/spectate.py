@@ -25,7 +25,7 @@ def load_model(mod_name, cls_name, file):
     mod = importlib.import_module(mod_name)
 
     if cls_name == "BC":
-        return mod.BC.reconstruct_policy(file)
+        return mod.reconstruct_policy(file)
 
     return getattr(mod, cls_name).load(file)
 

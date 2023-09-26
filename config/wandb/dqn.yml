@@ -1,6 +1,6 @@
 ---
 program: wandb-agent.py
-project: qwop
+project: qwop-gym
 method: grid
 metric:
   name: rollout/ep_rew_mean
@@ -12,30 +12,27 @@ parameters:
       model_load_file: { value: ~ }
       out_dir_template: { value: "data/DQN-{run_id}" }
       log_tensorboard: { value: true }
-      total_timesteps: { value: 10000 }
-      max_episode_steps: { value: 5000 }
+      total_timesteps: { value: !!float 15e6 }
+      max_episode_steps: { value: 1000 }
       n_checkpoints: { value: 5 }
       learner_kwargs:
         parameters:
           policy: { value: "MlpPolicy" }
-          buffer_size: { value: 1000 }
-          learning_starts: { value: 100 }
+          buffer_size: { value: 100000 }
+          learning_starts: { value: 100000 }
           batch_size: { value: 64 }
           tau: { value: 1.0 }
           gamma: { value: 0.995 }
           train_freq: { value: 4 }
           gradient_steps: { value: 1 }
-          target_update_interval: { value: 2000 }
-          exploration_fraction: { value: 0.01 }
-          exploration_initial_eps: { value: 1 }
-          exploration_final_eps: { value: 0.01 }
+          target_update_interval: { value: 512 }
+          exploration_fraction: { value: 0.5 }
+          exploration_initial_eps: { value: 0.2 }
+          exploration_final_eps: { value: 0.001 }
       learner_lr_schedule:
-        parameters:
-          fn: { value: "const" }
-          initial_value: { value: 0.001 }
-          step: { value: 0.75 }
-          decays: { value: 15 }
-          min_value: { value: 0.00001 }
+        values:
+          - "exp_decay_0.03_0.001_0.5_10"
+          - "const_0.001"
       env_kwargs:
         parameters:
           driver: { value: "/Users/simo/Projects/qwop/vendor/chromedriver" }
@@ -43,7 +40,7 @@ parameters:
           render_mode: { value: "browser" }
           failure_cost: { value: 10 }
           success_reward: { value: 50 }
-          time_cost_mult: { value: 10 }
+          time_cost_mult: { values: [5, 10] }
           frames_per_step: { value: 1 }
           stat_in_browser: { value: false }
           game_in_browser: { value: false }

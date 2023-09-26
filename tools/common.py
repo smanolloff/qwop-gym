@@ -24,6 +24,7 @@ import gym
 import yaml
 import random
 import string
+import math
 import numpy as np
 
 from src.env.v1.qwop_env import QwopEnv
@@ -113,6 +114,19 @@ class RecordWrapper(gym.Wrapper):
         return obs, reward, terminated, info
 
 
+class Replayer:
+    def __init__(self, actions):
+        self.actions = actions
+        self.iterator = iter(actions)
+        self.i = 0
+
+    def predict(self, _obs):
+        self.i += 1
+        action = next(self.iterator, None)
+        assert action is not None, f"Unexpected end of recording -- check seeds"
+        return (action, None)
+
+
 def expand_env_kwargs(env_kwargs):
     env_include_cfg = env_kwargs.pop("__include__", None)
 
@@ -188,7 +202,7 @@ def load_recording(recfile):
         assert m, "Failed to parse header for recording: %s" % recfile
         seed = int(m.group(1))
 
-        # episode is dict of {"skip": [bool], "actions": [...]}
+        # episode is dict of {"skip": ..., "actions": [...]}
         actions = []
         n_episodes = 0
 
@@ -214,8 +228,58 @@ def load_recording(recfile):
     return {"file": recfile, "seed": seed, "episodes": episodes}
 
 
-def step_decay_fn(initial_value, frac, decays=10, min_value=0):
-    milestones = [step / (decays + 1) for step in range(1, decays + 1)]
+# This is needed as episodes which did not satisfy the recording filter
+# were also recorded to prevent replay inconsistency (ie. actions leading
+# to a different outcome during replay).
+#
+# Example:
+# If 3 episodes were recorded:
+# 1. skip (min_distance not reached)
+# 2. skip (max_time exceeded)
+# 3. ok
+# We must store and replay all 3 episodes, even though the first 2 are
+# marked as "skipped". Otherwise, replaying actions from ep. 3 directly might
+# lead to a completely different outcome than originally observed.
+#
+# We fast-forward the "skip" episodes by disabling auto-draw and calling
+# .step() as fast as possible
+def skip_episode(env, steps_per_step, model):
+    done = False
+
+    # Disable auto-draw
+    old_auto_draw = env.unwrapped.auto_draw
+    env.unwrapped.auto_draw = False
+
+    if hasattr(env, "disable_verbose_wrapper"):
+        env.disable_verbose_wrapper()
+
+    while not done:
+        action, _ = model.predict(None)
+        for _ in range(steps_per_step):
+            _, _, done, _ = env.step(action)
+            if done:
+                break
+
+    if hasattr(env, "enable_verbose_wrapper"):
+        env.enable_verbose_wrapper()
+
+    env.unwrapped.auto_draw = old_auto_draw
+
+
+def exp_decay_fn(initial_value, final_value, decay_fraction, n_decays):
+    assert initial_value > final_value
+    assert final_value > 0
+    assert decay_fraction >= 0 and decay_fraction <= 1
+    assert n_decays > 0
+
+    # https://stackoverflow.com/a/56400152
+    multiplier = math.exp(math.log(final_value / initial_value) / n_decays)
+    const_fraction = 1 - decay_fraction
+    milestones = [
+        const_fraction + decay_fraction * step / (n_decays)
+        for step in range(0, n_decays)
+    ]
+
     # [0.9, 0.8, ... 0.1] for 9 decays
     milestones.reverse()
 
@@ -223,8 +287,8 @@ def step_decay_fn(initial_value, frac, decays=10, min_value=0):
         value = initial_value
         for m in milestones:
             if progress_remaining < m:
-                value *= frac
-                if value < min_value:
+                value *= multiplier
+                if value < final_value:
                     break
             else:
                 break
@@ -233,22 +297,47 @@ def step_decay_fn(initial_value, frac, decays=10, min_value=0):
     return func
 
 
+def lin_decay_fn(initial_value, final_value, decay_fraction):
+    assert initial_value > final_value
+    assert final_value > 0
+    assert decay_fraction >= 0 and decay_fraction <= 1
+    const_fraction = 1 - decay_fraction
+
+    def func(progress_remaining: float) -> float:
+        return max(0, 1 + (initial_value * progress_remaining - 1) / decay_fraction)
+
+    return func
+
+
 def lr_from_schedule(schedule):
-    match schedule["fn"]:
-        case "const":
-            return schedule["initial_value"]
-        case "step_decay":
-            return step_decay_fn(
-                schedule["initial_value"],
-                schedule["step"],
-                schedule["decays"],
-                schedule["min_value"],
-            )
-        case _:
-            print(
-                "Invalid config value for learner_lr_schedule.fn: %s" % schedule["fn"]
-            )
-            exit(1)
+    r_float = r"\d+(?:\.\d+)?"
+    r_const = rf"^const_({r_float})$"
+    r_lin = rf"^lin_decay_({r_float})_({r_float})_({r_float})$"
+    r_exp = rf"^exp_decay_({r_float})_({r_float})_({r_float})(?:_(\d+))$"
+
+    m = re.match(r_const, schedule)
+    if m:
+        return float(m.group(1))
+
+    m = re.match(r_lin, schedule)
+    if m:
+        return lin_decay_fn(
+            initial_value=float(m.group(1)),
+            final_value=float(m.group(2)),
+            decay_fraction=float(m.group(3)),
+        )
+
+    m = re.match(r_exp, schedule)
+    if m:
+        return exp_decay_fn(
+            initial_value=float(m.group(1)),
+            final_value=float(m.group(2)),
+            decay_fraction=float(m.group(3)),
+            n_decays=int(m.group(4)) if len(m.groups()) > 4 else 10,
+        )
+
+    print("Invalid config value for learner_lr_schedule: %s" % schedule)
+    exit(1)
 
 
 def play_model(env, fps, steps_per_step, model, obs):
@@ -258,7 +347,6 @@ def play_model(env, fps, steps_per_step, model, obs):
     clock = Clock(fps)
     done = False
 
-    print("play start")
     while not done:
         action, _states = model.predict(obs)
         for _ in range(steps_per_step):
@@ -266,7 +354,6 @@ def play_model(env, fps, steps_per_step, model, obs):
             clock.tick()
             if done:
                 break
-    print("play end")
 
 
 def save_model(out_dir, model):

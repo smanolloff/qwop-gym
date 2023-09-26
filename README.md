@@ -128,7 +128,7 @@ You can check out my W&B QWOP project [here](https://wandb.ai/s-manolloff/qwop-g
 Keep in mind that I have not put much effort in writing meaningful names or
 descriptions to my sweeps/runs, plus it contains runs from older iterations
 of the env, which might look confusing. At the very least, you can find
-model artifacts (zip files) of some top performing agents.
+model artifacts (zip files) of some top-performing agents.
 
 Check out this [youtube video](https://www.youtube.com/watch?v=2qNKjRwcx74) for
 a showcase of my trained agents.
@@ -156,6 +156,8 @@ been removed and recorded episodes are 100% replayable
 * the env has a _simple reward model_ and compared to other QWOP envs, it is
 less biased, eg. no special logic for stuff like _knee bending_,
 _low torso height_, _vertical movement_, etc.
+* the env allows all possible key combinations (15), other QWOP envs usually
+allow only the "useful" 6 or 8 key combinations
 * great results (fast, human-like running) achieved by RL agents trained
 entirely through self-play, without pre-recorded expert demonstrations
 * qwop-rl already contains scripts for training with 6 different algorithms and

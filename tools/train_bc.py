@@ -51,19 +51,23 @@ def train_model(
     return model
 
 
-def get_actions_and_sample_until_fns(rec):
-    # rec is a {"file": rec_file, "seed": seed, "episodes": [[1, 3, 1], [...]]}
+def get_actions_and_sample_until_fns(venv, rec):
+    # rec is a
+    # {
+    #   "file": rec_file,
+    #   "seed": seed,
+    #   "episodes": [{"skip": bool, "actions": [1, 3, 1]}, {...}, ...}
+    # }
 
+    print("Replaying %s" % rec["file"])
     state = {"no_more_recordings": False, "gi": 0}
-    episodes_iter = iter([iter(actions) for actions in rec["episodes"]])
-    episodes_completed = 0
+    episodes_iter = iter(dict(e, actions=iter(e["actions"])) for e in rec["episodes"])
     episodes_total = len(rec["episodes"])
     global_state = {
         "cur_episode": next(episodes_iter),
         "next_episode": next(episodes_iter, None),
-        "episodes_completed": 0,
+        "episode_no": 0,
         "episodes_total": len(rec["episodes"]),
-        "action_no": 0,
     }
 
     def get_actions(_observations, state, dones):
@@ -72,8 +76,8 @@ def get_actions_and_sample_until_fns(rec):
         # print("actions taken: %d" % global_state["action_no"])
 
         if dones[0]:
-            # each episode list contains actions exactly until episode ends
-            action = next(global_state["cur_episode"], None)
+            # each episode contains actions exactly until episode ends
+            action = next(global_state["cur_episode"]["actions"], None)
             assert (
                 action is None
             ), f"Expected end of episode, but have action {action} -- check seeds"
@@ -81,19 +85,23 @@ def get_actions_and_sample_until_fns(rec):
             # should never happen if `sample_until` has been returning false
             assert global_state["next_episode"] is not None, f"Expected more episodes"
 
-            global_state.update(
-                {
-                    "cur_episode": global_state["next_episode"],
-                    "next_episode": next(episodes_iter, None),
-                    "episodes_completed": global_state["episodes_completed"] + 1,
-                }
-            )
+            global_state["episode_no"] += 1
 
-        action = next(global_state["cur_episode"], None)
-        global_state["action_no"] += 1
+            while global_state["next_episode"]["skip"]:
+                global_state["cur_episode"] = global_state["next_episode"]
+                global_state["next_episode"] = next(episodes_iter, None)
+                replayer = common.Replayer(global_state["cur_episode"]["actions"])
+                common.skip_episode(venv.envs[0], 1, replayer)
+                print("Skipped episode %d" % global_state["episode_no"])
+                venv.envs[0].reset()
+                global_state["episode_no"] += 1
+            else:
+                global_state["cur_episode"] = global_state["next_episode"]
+                global_state["next_episode"] = next(episodes_iter, None)
+                print("Replayed episode %d" % global_state["episode_no"])
 
+        action = next(global_state["cur_episode"]["actions"], None)
         assert action is not None, f"Unexpected end of recording -- check seeds"
-
         return [action], state
 
     def sample_until(_trajectories):
@@ -124,7 +132,7 @@ def collect_transitions(venv, recs):
         rng = np.random.default_rng(rec["seed"])
         venv.env_method("reload", rec["seed"])
 
-        get_actions_fn, sample_until_fn = get_actions_and_sample_until_fns(rec)
+        get_actions_fn, sample_until_fn = get_actions_and_sample_until_fns(venv, rec)
         env_rollouts = rollout.rollout(get_actions_fn, venv, sample_until_fn, rng=rng)
         rollouts.extend(env_rollouts)
 

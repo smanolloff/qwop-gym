@@ -59,26 +59,29 @@ learner_kwargs:
   vf_coef: 0.5
   max_grad_norm: 3
 
-# Schedule for the learning_rate as a function of the progress remaining.
-# Possible values for `fn`:
-#   * "const" - use `initial_value` as a constant value for the entire training
-#   * "lin_decay" - starting with `initial_value`, multiply by `step` at even
-#      intervals (but no more than `decays` times) until `min_value` is reached
-# Example:
-#   fn: "lin_decay"
-#   initial_value: 0.01
-#   step: 0.5
-#   decays: 10
-#   min_value: 0.001
-# During training, the learning_rate (lr) changes like so:
-# 0%: 0.01, 10%: 0.005, 20%: 0.0025, 30%: 0.000625, 40%: 0.000625, ...100%: 0.000625
-# (0.000625 is below `min_value` so the learning rate remains unchanged)
-learner_lr_schedule:
-  fn: "const"
-  initial_value: 0.003
-  step: 0.75
-  decays: 20
-  min_value: 5.0e-05
+# (string) Schedule for the learning_rate as a function of the progress remaining.
+# Format is one of:
+#   const_V0
+#   lin_decay_V0_V1_F
+#   exp_decay_V0_V1_F_N
+# where:
+#   V0 = initial lr value
+#   V1 = final lr value
+#   F = fraction of the total training time to fully decay from V0 to V1
+#   N = number of decay steps (used in exp_decay only)
+# Examples:
+#   * "const_0.001"
+#     will maintain constant lr=0.001 for the entire training:
+#
+#   * "lin_decay_0.03_0.0001_0.75"
+#     will start with lr=0.03 and linearly lower it to lr=0.0001 during the
+#     first 75% of training
+#
+#   * "exp_decay_0.03_0.0001_0.5_5"
+#     will start with lr=0.03 and exponentially lower it to lr=0.0001 during
+#     the first 50% of training in 5 steps (ie. at 90%, 80%, 70%, 60% and 50%)
+#
+learner_lr_schedule: "const_0.001"
 
 # Env parameters
 # The special "__include__" key allows to load them from another file.

@@ -19,57 +19,6 @@ import time
 import tools.common as common
 
 
-class Replayer:
-    def __init__(self, actions):
-        self.actions = actions
-        self.iterator = iter(actions)
-        self.i = 0
-
-    def predict(self, _obs):
-        self.i += 1
-        return (next(self.iterator), None)
-
-
-# This is needed as episodes which did not satisfy the recording filter
-# were also recorded to prevent replay inconsistency (ie. actions leading
-# to a different outcome during replay).
-#
-# Example:
-# If 3 episodes were recorded:
-# 1. skip (min_distance not reached)
-# 2. skip (max_time exceeded)
-# 3. ok
-# We must store and replay all 3 episodes, even though the first 2 are
-# marked as "skipped". Otherwise, replaying actions from ep. 3 directly might
-# lead to a completely different outcome than originally observed.
-#
-# We fast-forward the "skip" episodes by disabling auto-draw and calling
-# .step() as fast as possible
-def skip_episode(env, steps_per_step, model):
-    done = False
-
-    # Disable auto-draw
-    old_auto_draw = env.unwrapped.auto_draw
-    env.unwrapped.auto_draw = False
-
-    if hasattr(env, "disable_verbose_wrapper"):
-        env.disable_verbose_wrapper()
-
-    print("skip start")
-    while not done:
-        action, _ = model.predict(None)
-        for _ in range(steps_per_step):
-            _, _, done, _ = env.step(action)
-            if done:
-                break
-    print("skip env")
-
-    if hasattr(env, "enable_verbose_wrapper"):
-        env.enable_verbose_wrapper()
-
-    env.unwrapped.auto_draw = old_auto_draw
-
-
 def replay(fps, recordings, reset_delay, steps_per_step):
     env = None
     episode_ended_at = None
@@ -85,11 +34,11 @@ def replay(fps, recordings, reset_delay, steps_per_step):
                 obs = env.reset()
 
             for i, episode in enumerate(rec["episodes"], 1):
-                model = Replayer(episode["actions"])
+                model = common.Replayer(episode["actions"])
 
                 if episode["skip"]:
                     print("Skipping episode %d" % i)
-                    skip_episode(env, steps_per_step, model)
+                    common.skip_episode(env, steps_per_step, model)
                     obs = env.reset()
                 else:
                     if episode_ended_at:
