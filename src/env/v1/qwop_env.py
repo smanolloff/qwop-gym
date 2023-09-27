@@ -16,7 +16,7 @@
 
 import socket
 import numpy as np
-from multiprocessing import Process
+import multiprocessing
 import gym
 import itertools
 import functools
@@ -127,7 +127,8 @@ class QwopEnv(gym.Env):
                 browser=browser,
                 loglevel=loglevel,
             )
-            self.proc = Process(target=server.start)
+            self.proc_shutdown = multiprocessing.Event()
+            self.proc = multiprocessing.Process(target=server.start, kwargs={"shutdown": self.proc_shutdown})
             self.proc.start()
             self.client = WSClient(sock.getsockname()[1], loglevel)
 
@@ -334,6 +335,8 @@ class QwopEnv(gym.Env):
         self.client.close()
 
         if self.proc and self.proc.is_alive():
+            self.proc_shutdown.set()
+            self.proc.join(timeout=2)
             self.proc.terminate()
 
     def render_browser(self):

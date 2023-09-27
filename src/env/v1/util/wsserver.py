@@ -21,6 +21,7 @@ import asyncio
 import pathlib
 import websockets
 import sys
+import os
 import urllib.parse
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -82,20 +83,19 @@ class WSServer:
         self._shutting_down = False
 
     def cleanup_and_exit(self, future):
+        self.logger.info("Shutting down")
         self._shutting_down = True
         self._event.set()
         if not future.done():
             future.set_result(0)
 
-    def start(self):
+    def start(self, shutdown):
         # must set logger here, as .start() is called in another process
         self.logger = Log.get_logger(__name__, self.loglevel)
 
         loop = asyncio.get_event_loop()
         stop = asyncio.Future()
-
-        loop.add_signal_handler(signal.SIGINT, self.cleanup_and_exit, stop)
-        loop.add_signal_handler(signal.SIGTERM, self.cleanup_and_exit, stop)
+        loop.create_task(self.check_shutdown(shutdown, stop))
 
         with self.sock:
             while not self._shutting_down:
@@ -103,6 +103,11 @@ class WSServer:
 
             if self._driver:
                 self._driver.quit()
+
+    async def check_shutdown(self, shutdown, stop):
+        while not shutdown.is_set():
+            await asyncio.sleep(0.1)
+        self.cleanup_and_exit(stop)
 
     async def _start(self, stop):
         self._stop = stop
