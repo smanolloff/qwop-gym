@@ -124,7 +124,7 @@ wandb sweep config/wandb/qrdqn.yml
 wandb agent <username>/qwop/<sweep>
 ``` 
 
-You can check out my own W&B QWOP project [here](https://wandb.ai/s-manolloff/qwop).
+You can check out my W&B QWOP project [here](https://wandb.ai/s-manolloff/qwop-gym).
 Keep in mind that I have not put much effort in writing meaningful names or
 descriptions to my sweeps/runs, plus it contains runs from older iterations
 of the env, which might look confusing. At the very least, you can find
