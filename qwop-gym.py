@@ -92,7 +92,9 @@ def main(action, cfg, tag=None):
                     "trainer_kwargs": cfg.get("trainer_kwargs", {}),
                     "total_timesteps": cfg.get("total_timesteps", 1000000),
                     "episode_len": cfg.get("episode_len", 500),
-                    "learner_lr_schedule": cfg.get("learner_lr_schedule", "const_0.001"),
+                    "learner_lr_schedule": cfg.get(
+                        "learner_lr_schedule", "const_0.001"
+                    ),
                 }
             )
 
@@ -126,7 +128,9 @@ def main(action, cfg, tag=None):
                     "total_timesteps": cfg.get("total_timesteps", 1000000),
                     "max_episode_steps": cfg.get("max_episode_steps", 5000),
                     "n_checkpoints": cfg.get("n_checkpoints", 5),
-                    "learner_lr_schedule": cfg.get("learner_lr_schedule", "const_0.003"),
+                    "learner_lr_schedule": cfg.get(
+                        "learner_lr_schedule", "const_0.003"
+                    ),
                 }
             )
 

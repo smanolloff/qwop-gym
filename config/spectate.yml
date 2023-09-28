@@ -1,18 +1,18 @@
 ---
 # [int] Frames per second (use 30 for a genuine QWOP experience)
-fps: 30
+fps: 120
 
 # [int] End-game screen duration in seconds
 reset_delay: 1
 
 # [string] Path to the file to load the model from
-model_file: "data/GAIL_PPO-rzn2ucpg/model.zip"
+model_file: "data/QRDQN-a2wcll0p/model_9000000_steps.zip"
 
 # [string] Module name of the learner alrogirthm (eg. "stable_baselines3")
-model_mod: "stable_baselines3"
+model_mod: "sb3_contrib"
 
 # [string] Class name of the learner algorithm (eg. "PPO")
-model_cls: "PPO"
+model_cls: "QRDQN"
 
 # [int] Number times to call `env.step()` per action
 # It should be equal to the value of `frames_per_step` used during training,

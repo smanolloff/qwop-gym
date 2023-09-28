@@ -49,6 +49,7 @@ parameters:
           reload_on_reset: { value: false }
           auto_draw: { value: false }
           browser_mock: { value: false }
-          r_for_terminate: { value: false }
+          reduced_action_set: { value: false }
+          t_for_terminate: { value: false }
           text_in_browser: { value: "Do not close this window, training in progress..." }
           loglevel: { value: "WARN" }

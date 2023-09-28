@@ -36,6 +36,7 @@ learner_kwargs:
 env_kwargs:
   __include__: "config/env.yml"
   frames_per_step: 4
+  reduced_action_set: false
   text_in_browser: "Do not close this window, training in progress..."
 
 # List of gym wrappers to use for the env

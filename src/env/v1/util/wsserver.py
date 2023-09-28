@@ -80,38 +80,43 @@ class WSServer:
         self._window = None
         self._driver = None
         self._initialized = False
-        self._shutting_down = False
 
-    def cleanup_and_exit(self, future):
-        self.logger.info("Shutting down")
-        self._shutting_down = True
+    def cleanup_and_exit(self):
+        if not self._shutdown.is_set():
+            self.logger.info("Shutting down")
+
+        self._shutdown.set()
         self._event.set()
-        if not future.done():
-            future.set_result(0)
+        if not self._future.done():
+            self._future.set_result(0)
 
     def start(self, shutdown):
         # must set logger here, as .start() is called in another process
         self.logger = Log.get_logger(__name__, self.loglevel)
+        self._shutdown = shutdown
+        self._future = asyncio.Future()
 
         loop = asyncio.get_event_loop()
-        stop = asyncio.Future()
-        loop.create_task(self.check_shutdown(shutdown, stop))
+        loop.create_task(self.check_shutdown())
+
+        if os.name == 'posix':
+            loop.add_signal_handler(signal.SIGINT, self.cleanup_and_exit)
+            loop.add_signal_handler(signal.SIGTERM, self.cleanup_and_exit)
 
         with self.sock:
-            while not self._shutting_down:
-                loop.run_until_complete(self._start(stop))
+            while not shutdown.is_set():
+                loop.run_until_complete(self._start())
 
             if self._driver:
                 self._driver.quit()
 
-    async def check_shutdown(self, shutdown, stop):
-        while not shutdown.is_set():
+    async def check_shutdown(self):
+        while not self._shutdown.is_set():
             await asyncio.sleep(0.1)
-        self.cleanup_and_exit(stop)
+        self.logger.info("Shutting down")
+        self.cleanup_and_exit()
 
-    async def _start(self, stop):
-        self._stop = stop
-
+    async def _start(self):
         async with websockets.serve(self.handler, sock=self.sock) as server:
             self.port = server.sockets[0].getsockname()[1]
 
@@ -119,13 +124,14 @@ class WSServer:
 
             # wait until driver connects
             if self.driver and self.browser:
-                asyncio.create_task(self._launch_browser())
-
-                # XXX: I can't figure out why the code hangs forever
-                #      when this task raises an exception :(
+                task = asyncio.create_task(self._launch_browser())
                 await asyncio.wait_for(self._event.wait(), timeout=30)
 
-            await stop
+            if task and task.exception():
+                self.logger.error(task.exception())
+                self.cleanup_and_exit()
+
+            await self._future
             server.close()
 
     def build_url(self):
@@ -177,7 +183,7 @@ class WSServer:
 
     def _maybe_relaunch_browser(self):
         if not self._initialized:
-            self.cleanup_and_exit(self._stop)
+            self.cleanup_and_exit()
             return
 
         try:

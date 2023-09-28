@@ -6,7 +6,7 @@ reset_delay: 1
 env_kwargs:
   __include__: "config/env.yml"
   render_mode: "rgb_array"
-  r_for_terminate: true
+  t_for_terminate: true
   stat_in_browser: true
   game_in_browser: false
   text_in_browser: "Recording your play (press Escape to exit)"
@@ -30,6 +30,3 @@ env_wrappers:
 
       # [int] (optional) Discard episode if distance < `min_distance`
       min_distance: 3
-
-      # [bool] (optional) Discard episode if incomplete (eg. terminated via "R")
-      complete_only: true

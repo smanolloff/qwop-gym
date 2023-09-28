@@ -36,7 +36,7 @@ error in the browser console - a WebSocket error which you can ignore.
 | key | effect |
 |-----|--------|
 | QWOP | standard move commands |
-| R | restart game |
+| T | terminate episode (restart) |
 | S | step (advance one timestep) |
 | D | draw (render) |
 | F | step, then draw |

@@ -22,14 +22,22 @@ from .log import Log
 import sys
 
 
+class Shutdown(Exception):
+    pass
+
+
 class WSClient:
-    def __init__(self, port, loglevel):
+    def __init__(self, port, loglevel, shutdown):
         self.port = port
         self.logger = Log.get_logger(__name__, loglevel)
+        self.shutdown = shutdown
         self.connect()
 
     def connect(self):
         while True:
+            if self.shutdown.is_set():
+                raise Shutdown()
+
             try:
                 self._connect_attempt()
                 self.logger.debug("Connected")
@@ -53,6 +61,9 @@ class WSClient:
 
     def send(self, data):
         while True:
+            if self.shutdown.is_set():
+                raise Shutdown()
+
             try:
                 self.ws.send(data)
                 return self.ws.recv(timeout=3)
@@ -66,6 +77,8 @@ class WSClient:
                 self.logger.info("Reconnecting in 5s...")
                 time.sleep(5)
                 self.connect()
+
+        raise Shutdown()
 
     def close(self):
         self.ws.close()

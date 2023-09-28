@@ -12,7 +12,7 @@ reset_delay: 1
 env_kwargs:
   __include__: "config/env.yml"
   render_mode: "rgb_array"
-  r_for_terminate: true
+  t_for_terminate: true
   stat_in_browser: true
   game_in_browser: false
   text_in_browser: "You are playing (press Escape to exit)"

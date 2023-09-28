@@ -53,7 +53,7 @@ class Clock:
 
 
 class RecordWrapper(gym.Wrapper):
-    def __init__(self, env, rec_file, overwrite, max_time, min_distance, complete_only):
+    def __init__(self, env, rec_file, overwrite, max_time, min_distance):
         super().__init__(env)
 
         if os.path.exists(rec_file) and not overwrite:
@@ -65,7 +65,6 @@ class RecordWrapper(gym.Wrapper):
         self.overwrite = overwrite
         self.max_time = max_time or 999
         self.min_distance = min_distance or 0
-        self.complete_only = complete_only
         self.actions = []
         self.discarded_episodes = []
 
@@ -74,14 +73,11 @@ class RecordWrapper(gym.Wrapper):
         self.actions.append(str(action))
 
         if terminated:
-            ep_info = "episode with time=%.2f and distance=%.2f" % (
-                info["time"],
-                info["distance"],
-            )
-            incomplete = self.env.r_for_terminate and action == 15
+            ep_info = "episode with time=%.2f" % info["time"]
+            ep_info += " and distance=%.2f" % info["distance"]
+            incomplete = action == self.env.action_t
 
-            # only write actions to file if this was NOT a manual reset
-            if self.complete_only and incomplete:
+            if incomplete:
                 print("Discarded %s (incomplete)" % ep_info)
                 self.discarded_episodes.append(self.actions)
             elif info["time"] > self.max_time:
@@ -91,7 +87,7 @@ class RecordWrapper(gym.Wrapper):
                 print("Discarded %s (min_distance not reached)" % ep_info)
                 self.discarded_episodes.append(self.actions)
             else:
-                # Dump discarded episodes actions only when there is
+                # Dump discarded episodes only when there is
                 # a regular episode after them
                 if len(self.discarded_episodes) > 0:
                     print("Dump %d discarded episodes" % len(self.discarded_episodes))

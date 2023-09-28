@@ -101,9 +101,10 @@ class QwopEnv(gym.Env):
         game_in_browser=True,  # show the game itself in the browser
         reload_on_reset=False,  # reload web page on reset calls
         auto_draw=False,  # browser draw on each step
-        r_for_terminate=False,
+        t_for_terminate=False,
         seed=None,
         browser_mock=False,
+        reduced_action_set=False,
         loglevel="WARN",
         noop=None,
     ):
@@ -129,17 +130,19 @@ class QwopEnv(gym.Env):
                 browser=browser,
                 loglevel=loglevel,
             )
-            self.proc_shutdown = multiprocessing.Event()
-            self.proc = multiprocessing.Process(target=server.start, kwargs={"shutdown": self.proc_shutdown})
+            self.shutdown = multiprocessing.Event()
+            self.proc = multiprocessing.Process(
+                target=server.start, kwargs={"shutdown": self.shutdown}
+            )
             self.proc.start()
-            self.client = WSClient(sock.getsockname()[1], loglevel)
+            self.client = WSClient(sock.getsockname()[1], loglevel, self.shutdown)
 
-        self.screen = None
         self.auto_draw = auto_draw
-        self.r_for_terminate = r_for_terminate
+        self.t_for_terminate = t_for_terminate
         self.reload_on_reset = reload_on_reset
         self.logger = Log.get_logger(__name__, loglevel)
 
+        self.reduced_action_set = reduced_action_set
         self._set_keycodes()
 
         self.render_mode = render_mode
@@ -161,7 +164,12 @@ class QwopEnv(gym.Env):
 
         zeros = np.zeros(self.observation_space.shape, dtype=DTYPE)
         self.noop_reaction = Reaction(0, 0, 0, zeros, zeros)
-        self.action_r = self.action_space.n - 1
+
+        if self.t_for_terminate:
+            # "T" is always the last action
+            self.action_t = self.action_space.n - 1
+        else:
+            self.action_t = None
 
         self.steps = 0
         self.last_reaction = self.noop_reaction
@@ -171,41 +179,60 @@ class QwopEnv(gym.Env):
         self.logger.info("Initialized with seed: %d" % self.seedval)
 
     def _set_keycodes(self):
-        self.keycodes = [ord(x) for x in ["q", "w", "o", "p"]]
-        self.keyflags = [
-            WSProto.CMD_K_Q,
-            WSProto.CMD_K_W,
-            WSProto.CMD_K_O,
-            WSProto.CMD_K_P,
-        ]
+        keymap = {
+            "q": WSProto.CMD_K_Q,
+            "w": WSProto.CMD_K_W,
+            "o": WSProto.CMD_K_O,
+            "p": WSProto.CMD_K_P,
+        }
 
-        # Lists of tuples representing pressed key combinations
+        keycodes = [ord(x) for x in keymap.keys()]
+        keyflags = keymap.values()
+
+        # All possible key combinations represented as lists of tuples
         self.keycodes_c = (
-            list(itertools.combinations(self.keycodes, 0))  # 0
-            + list(itertools.combinations(self.keycodes, 1))  # 4: Q, W, O, P
-            + list(itertools.combinations(self.keycodes, 2))  # 6: QW, QO, ...
-            + list(itertools.combinations(self.keycodes, 3))  # 4: QWO, QWP, ...
-            + list(itertools.combinations(self.keycodes, 4))  # 1: QWOP
+            list(itertools.combinations(keycodes, 0))  # 0
+            + list(itertools.combinations(keycodes, 1))  # 4: Q, W, O, P
+            + list(itertools.combinations(keycodes, 2))  # 6: QW, QO, ...
+            + list(itertools.combinations(keycodes, 3))  # 4: QWO, QWP, ...
+            + list(itertools.combinations(keycodes, 4))  # 1: QWOP
         )
 
         self.keyflags_c = (
-            list(itertools.combinations(self.keyflags, 0))  # 0
-            + list(itertools.combinations(self.keyflags, 1))  # 4: Q, W, O, P
-            + list(itertools.combinations(self.keyflags, 2))  # 6: QW, QO, ...
-            + list(itertools.combinations(self.keyflags, 3))  # 4: QWO, QWP, ...
-            + list(itertools.combinations(self.keyflags, 4))  # 1: QWOP
+            list(itertools.combinations(keyflags, 0))
+            + list(itertools.combinations(keyflags, 1))
+            + list(itertools.combinations(keyflags, 2))
+            + list(itertools.combinations(keyflags, 3))
+            + list(itertools.combinations(keyflags, 4))
         )
+
+        if self.reduced_action_set:
+            # Remove useless key combinations instead of
+            # letting agents work it out on their own
+            redundant_combinations = [
+                ("q", "o"),
+                ("w", "p"),
+                ("q", "w", "o"),
+                ("q", "w", "p"),
+                ("q", "o", "p"),
+                ("w", "o", "p"),
+                ("q", "w", "o", "p"),
+            ]
+
+            for rc in redundant_combinations:
+                self.keycodes_c.remove(tuple(ord(x) for x in rc))
+                self.keyflags_c.remove(tuple(keymap.get(x) for x in rc))
 
         # Key combinations represented as WSProto cmdflags
         self.action_cmdflags = [
             functools.reduce(lambda a, e: a | e, t, 0) for t in self.keyflags_c
         ]
 
-        if self.r_for_terminate:
-            # used in manual play:
-            # replace the Q+W+O+P key-combination with the "R" key
-            # and make it terminate the env instead
-            self.keycodes_c[-1] = (ord("r"),)
+        if self.t_for_terminate:
+            # add an extra "T" key which terminates env immediately
+            self.keycodes_c.append((ord("t"),))
+            self.keyflags_c.append(0)
+            self.action_cmdflags.append(0)
 
     def seed(self, seed=None):
         # Can't re-seed -- the game has already been initialized
@@ -243,12 +270,8 @@ class QwopEnv(gym.Env):
         self.steps += 1
 
         reaction = self._perform_action(action)
-
         reward = self._calc_reward(reaction, self.last_reaction)
-        terminated = reaction.game_over or (
-            self.r_for_terminate and action == self.action_r
-        )
-
+        terminated = reaction.game_over or action == self.action_t
         info = {
             "time": reaction.time,
             "distance": reaction.distance,
@@ -332,14 +355,10 @@ class QwopEnv(gym.Env):
                 gym.logger.warn("Render mode not implemented: %s" % self.render_mode)
 
     def close(self):
-        if self.screen is not None:
-            pygame.display.quit()
-            pygame.quit()
-
         self.client.close()
 
         if self.proc and self.proc.is_alive():
-            self.proc_shutdown.set()
+            self.shutdown.set()
             self.proc.join(timeout=2)
             self.proc.terminate()
 
