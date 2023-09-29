@@ -62,13 +62,13 @@ on. By default, those are still considered valid actions by QwopEnv and
 agents (including humans) should learn this peculiarity on their own.
 For the sake of reducing training times, however, removing redundant actions is
 made configurable in the form of the `reduced_action_set` env parameter, which
-reduces the total number of actions from 16 to just 8.
+reduces the total number of actions from 16 to just 9.
 
 Optionally, an _extra_ action can be added for the T key in order
 to immediately terminate the env - useful when playing manually to force a
 restart (instead of having to wait for the athlete to fall).
 This behaviour is controlled by the `t_for_terminate` env parameter, which
-increases the total number of actions to 17 (or 9, if `reduced_action_set`
+increases the total number of actions to 17 (or 10, if `reduced_action_set`
 is also enabled).
 
 To perform an action:

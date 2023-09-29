@@ -12,7 +12,7 @@ parameters:
       model_load_file: { value: ~ }
       out_dir_template: { value: "data/QRDQN-{run_id}" }
       log_tensorboard: { value: true }
-      total_timesteps: { value: 35e6 }
+      total_timesteps: { value: 32e6 }
       max_episode_steps: { value: 1000 }
       n_checkpoints: { value: 50 }
       learner_kwargs:
