@@ -3,7 +3,7 @@
 A Gym environment for Bennet Foddy's game called _QWOP_.
 
 [Give it a try](https://www.foddy.net/Athletics.html) and see why it's such a
-good candidate for Reinforcement Learning :)
+good candidate for Reinforcement Learning, check this [video](https://www.youtube.com/watch?v=2qNKjRwcx74) for a demo :)
 
 ![banner-3](./doc/banner-3.gif)
 
