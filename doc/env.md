@@ -198,15 +198,15 @@ state in ~99.99% of the times (empirically measured).
 
 ### Hard resets
 
-**Hard** re-load the web page (QWOP.html) ie. the entire game engine is
-re-initialized. Repeating the exact same actions after a hard reset _will_
-result in the exact same outcome.
+**Hard** resets will re-load the web page (QWOP.html) ie. the entire game
+engine is re-initialized. Repeating the exact same actions after a hard
+reset _will_ result in the exact same outcome.
 
 **Hard** resets are cumbersome and more obtrusive (each page reload causes
 a visible flicker). To enable it, pass the `reload_on_reset=True` keyword
 argument to the QwopEnv constructor.
 
-With this reset mode, the environment is satisfying the Markov principle,
+With this reset mode, the environment is satisfying the Markov property,
 given the step number is part of the state: an action `a` at state `s` will
 always yield one specific state `s+1`.
 
