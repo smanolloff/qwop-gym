@@ -106,7 +106,6 @@ class QwopEnv(gym.Env):
         browser_mock=False,
         reduced_action_set=False,
         loglevel="WARN",
-        noop=None,
     ):
         seedval = seed or np.random.default_rng().integers(2**31)
         assert seedval >= 0 and seedval <= np.iinfo(np.int32).max

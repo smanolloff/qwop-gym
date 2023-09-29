@@ -16,10 +16,11 @@
 
 import numpy as np
 import time
+import sys
+import struct
 from websockets.sync import client
 from .wsproto import WSProto, to_bytes
 from .log import Log
-import sys
 
 
 class Shutdown(Exception):
@@ -92,8 +93,10 @@ class WSClientMock:
     def recv(self):
         return (
             to_bytes(WSProto.H_OBS)
-            + to_bytes(0)
-            + np.zeros(65, dtype=np.float32).tobytes()
+            + to_bytes(0)  # flags
+            + struct.pack("=f", 1695977066)  # time
+            + struct.pack("=f", 5.0)  # distance
+            + np.zeros(60, dtype=np.float32).tobytes()  # obs
         )
 
     def close(self):

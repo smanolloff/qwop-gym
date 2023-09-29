@@ -166,11 +166,13 @@ env.close()
 
 ## <a id="rendering"></a> 🖼️ Rendering
 
-At its core, QWOP frames are rendered by WebGL.
-
-However, re-rendering is sometimes needed in case of a human playing, as the
-pygame window (which receives the keyboard input) should also render the result
-of the pressed keys:
+The env supports two render modes: `browser` and `rgb_array`. In both cases, a
+call to `.render()` will render a frame in the browser, but with `rgb_array`
+the frame itself is also returned as an image.
+This is needed when a human is playing, as this image is re-rendered in a
+pygame window which also receives the keyboard input. As this would result in
+frames being visualized twice (in both the browser and the pygame window), the
+configuration parameter `game_in_browser` is used to hide the browser part.
 
 ![play](./play.png)
 
@@ -257,3 +259,29 @@ here are some examples:
 | Log | `6` | (utf-8 text) | (utf-8 text - cont.) |
 | Error | `7` | (utf-8 text) | (utf-8 text - cont.) |
 | Reload page | `8` | | |
+
+
+## Configuration parameters
+
+Here you will find a list of all configuration parameters
+Various aspects of the env can be configured via the constructor arguments:
+
+| name | type | default | description |
+|------|------|---------|-------------|
+|`browser`|string|Path to the web browser binary|
+|`driver`|string||Path to the chromedriver binary|
+|`render_mode`|string||Supported render modes (either `browser` or `rgb_array`)|
+|`failure_cost`|number|`10`|Subtracted from the reward at the end of unsuccessful episodes|
+|`success_reward`|number|`50`|Added to the reward at the end of successful episodes|
+|`time_cost_mult`|number|`10`|Multiplier for the amount subtracted from the reward at each step|
+|`frames_per_step`|int|`1`|Number of frames to advance per call to `.step` (aka. _frameskip_)|
+|`stat_in_browser`|bool|`False`|Display various game stats in the browser next to the game area|
+|`game_in_browser`|bool|`True`|Display the game area itself in the browser|
+|`text_in_browser`|string||Display a static text next to the game area in the browser|
+|`reload_on_reset`|bool|`False`|Perform a page reload on each call to `.reset` (aka. "hard reset")|
+|`auto_draw`|bool|`False`|Automatically draw the current frame on each call to `.reset`|
+|`reduced_action_set`|bool|`False`|Reduce possible actions from 16 to just 9|
+|`t_for_terminate`|bool|`False`|Map an additional action to the T key for terminating the env|
+|`loglevel`|string|`WARN`|Logger level (DEBUG|INFO|WARN|ERROR)|
+|`seed`|int||Seed (must be between 0 and 2^31), auto-generated if blank|
+|`browser_mock`|bool|`False`|Used for debugging when no browser is needed|
