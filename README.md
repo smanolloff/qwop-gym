@@ -151,8 +151,8 @@ In comparison, qwop-gym offers several key features:
 * the env is _performant_ - perfect for on-policy algorithms as observations
 can be collected at great speeds (more than 2000 observations/sec on an Apple
 M2 CPU - orders of magnitute faster than the other QWOP RL envs)
-* the env satisfies the _Markov property_ - randomness and race conditions have
-been removed and recorded episodes are 100% replayable
+* the env satisfies the _Markov property_ - there are no race conditions and
+randomness can be removed if desired, so recorded episodes are 100% replayable
 * the env has a _simple reward model_ and compared to other QWOP envs, it is
 less biased, eg. no special logic for stuff like _knee bending_,
 _low torso height_, _vertical movement_, etc.
