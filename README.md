@@ -157,7 +157,7 @@ randomness can be removed if desired, so recorded episodes are 100% replayable
 less biased, eg. no special logic for stuff like _knee bending_,
 _low torso height_, _vertical movement_, etc.
 * the env allows all possible key combinations (15), other QWOP envs usually
-allow only the "useful" 6 or 8 key combinations
+allow only the "useful" 8 key combinations
 * great results (fast, human-like running) achieved by RL agents trained
 entirely through self-play, without pre-recorded expert demonstrations
 * qwop-rl already contains scripts for training with 6 different algorithms and
