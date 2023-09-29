@@ -134,14 +134,16 @@ print("Head (x, y) = (%.2f, %.2f)" % (head_x, head_y))
 The reward on each step is equal to:
 
 ```math
-R = C_s\frac{\Delta_s}{\Delta_t} - C_t \Delta_t
+R = C_s\frac{\Delta_s}{\Delta_t} - \frac{C_t}{C_f}\Delta_t
 ```
 
 where:
 * **R** is the reward
 * **Δ<sub>s</sub>** is the change in distance ran since last step
 * **Δ<sub>t</sub>** is the change in time elapsed since last step
-* **C<sub>s</sub>** and **C<sub>t</sub>** are constants (configurable)
+* **C<sub>s</sub>** is a constant (configurable via `speed_rew_mult`)
+* **C<sub>t</sub>** is a constant (configurable via `time_cost_mult`)
+* **C<sub>f</sub>** is a constant (configurable via `frames_per_step`)
 
 ## 💀 <a id="termination"></a> Termination
 
