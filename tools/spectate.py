@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 
-import gym
+import gymnasium as gym
 import time
 import importlib
 import tools.common as common
@@ -43,7 +43,7 @@ def spectate(
 
     try:
         while True:
-            obs = env.reset()
+            obs, info = env.reset()
             common.play_model(env, fps, steps_per_step, model, obs)
             time.sleep(reset_delay)
     finally:

@@ -17,7 +17,7 @@
 import collections
 import numpy as np
 import time
-import gym
+import gymnasium as gym
 
 from .wsproto import WSProto
 
@@ -43,10 +43,10 @@ class VerboseWrapper(gym.Wrapper):
         return self.env.reset(*args, **kwargs)
 
     def step(self, action):
-        obs, reward, terminated, info = self.env.step(action)
+        obs, reward, terminated, truncated, info = self.env.step(action)
 
         if not self.enabled:
-            return obs, reward, terminated, info
+            return obs, reward, terminated, truncated, info
 
         self.n_steps += 1
         self.total_reward += reward
@@ -67,7 +67,7 @@ class VerboseWrapper(gym.Wrapper):
         v = ds / dt
 
         print(
-            "%-05d | %-4s | %-4s | %-6sm | %-6s m/s | %-6s | %-6s.%s s | %-6s"
+            "%-05d | %-4s | %-4s | %-6sm | %-6s m/s | %-6s | %6s.%s s | %-6s"
             % (
                 self.n_steps,
                 action,
@@ -94,7 +94,7 @@ class VerboseWrapper(gym.Wrapper):
         self.last_distance = info["distance"]
         self.last_time = info["time"]
 
-        return obs, reward, terminated, info
+        return obs, reward, terminated, truncated, info
 
     # Convenience methods for controlling verbosity
     def disable_verbose_wrapper(self):

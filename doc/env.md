@@ -27,18 +27,18 @@ env = QwopEnv(
 )
 ```
 
-And in case you need it registered in `gym`:
+And in case you need it registered in `gymnasium`:
 
 ```python
-import gym.envs
+import gymnasium
 
-gym.envs.register(
+gymnasium.register(
   "QwopEnv-v1",
   entry_point="src.env.v1.qwop_env:QwopEnv",
   kwargs={"browser": "...", "driver": "..."}
 )
 
-env = gym.make("QwopEnv-v1")
+env = gymnasium.make("QwopEnv-v1")
 ```
 
 ## <a id="actions"></a> 🕹️ Actions
@@ -75,7 +75,7 @@ To perform an action:
 
 ```python
 # advances a timestep with the "P" key pressed
-(observation, reward, done, info) = env.step(4)
+(observation, reward, terminated, truncated, info) = env.step(4)
 ```
 
 ## <a id="observations"></a> 👁️ Observations

@@ -1,6 +1,6 @@
 ---
 # [int] Frames per second (use 30 for a genuine QWOP experience)
-fps: 60
+fps: 30
 
 # [int] End-game screen duration in seconds
 reset_delay: 1
@@ -8,12 +8,12 @@ reset_delay: 1
 # [List<string>] List of paths for the recordings to train with
 # Glob patterns are supported, eg. "data/recordings/*.rec"
 recordings:
-  - "data/recordings/1syeor3a-12000000.rec"
+  - "data/recordings/recording-1.rec"
 
 # [int] Number times to call `env.step()` per action
 # It should be equal to the value of `frames_per_step` used during recording,
 # while `frames_per_step` here should be set to 1 to make the rendering smooth.
-steps_per_step: 4
+steps_per_step: 1
 
 # Env parameters
 # The special "__include__" key allows to load them from another file.

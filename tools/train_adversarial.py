@@ -28,12 +28,12 @@ import numpy as np
 import importlib
 import os
 import time
-import gym
+import gymnasium as gym
 import tools.common as common
 
 
 class AbsorbWrapper(gym.Wrapper):
-    """Return done=False and the last non-terminal observation forever"""
+    """Return terminated=False and the last non-terminal observation forever"""
 
     def __init__(self, env):
         super().__init__(env)
@@ -47,12 +47,12 @@ class AbsorbWrapper(gym.Wrapper):
         if self.terminal_return is not None:
             return self.terminal_return
 
-        obs, reward, terminated, info = self.env.step(action)
+        obs, reward, terminated, truncated, info = self.env.step(action)
 
         if terminated:
-            self.terminal_return = (obs, reward, False, info)
+            self.terminal_return = (obs, reward, False, truncated, info)
 
-        return obs, reward, False, info
+        return obs, reward, False, truncated, info
 
 
 def get_actions_and_sample_until_fns(venv, rec, episode_len):
@@ -113,7 +113,7 @@ def get_actions_and_sample_until_fns(venv, rec, episode_len):
             # each episode contains actions exactly until episode ends
             assert (
                 action is None
-            ), f"Expected end of episode, but have action {action} -- check seeds"
+            ), f"Expected end of episode, but have action {action} -- check seed and frames_per_step"
 
         # need to return a valid action
         return [action or 0], state
@@ -186,7 +186,7 @@ def collect_rollouts(venv, episode_len, recs):
     for rec in recs:
         print("Collecting rollouts from %s" % rec["file"])
         rng = np.random.default_rng(rec["seed"])
-        venv.env_method("reload", rec["seed"])
+        venv.env_method("reset", rec["seed"])
 
         get_actions_fn, sample_until_fn = get_actions_and_sample_until_fns(
             venv, rec, episode_len
@@ -219,7 +219,7 @@ def train_learner(
     out_dir,
     log_tensorboard,
 ):
-    venv.env_method("reload", seed)
+    venv.env_method("reset", seed)
     rng = np.random.default_rng(seed)
     log = None
 

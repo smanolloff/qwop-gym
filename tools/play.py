@@ -16,8 +16,8 @@
 
 import os
 import time
-import gym
-import gym.utils.play
+import gymnasium as gym
+import gymnasium.utils.play
 
 import tools.common as common
 

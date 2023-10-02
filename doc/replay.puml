@@ -1,15 +1,20 @@
 @startuml "replay"
 
+title Watching a recorded episode\n(1 step)
+
 autoactivate on
 
 participant replay.py as script
 participant QwopEnv as env
 participant Browser as browser
+actor Human as human
 
-script -> env: <font color="gray"><i>2 = "W"</i></font>\n.step(2)
+note over script: Loads stored actions\neg. [2, 2, 7, 1, 0, ...]
+script -> env: .step(2)
 env -> browser: (data)
-note over browser: WebGL render
-browser --> env: (data)
-env --> script: (obs, rew, term, info)
+note over browser: WebGL render\n(visible)
+human --> browser: (sees new frame)
+browser --> env: (obs data)
+env --> script: (obs, rew, term, trunc, info)
 
 @enduml

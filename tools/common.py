@@ -20,7 +20,7 @@ import datetime
 import os
 import re
 import glob
-import gym
+import gymnasium as gym
 import yaml
 import random
 import string
@@ -61,7 +61,7 @@ class RecordWrapper(gym.Wrapper):
 
         print("Recording to %s" % rec_file)
         self.handle = open(rec_file, "w")
-        self.handle.write("seed=%d\n" % env.seedval)
+        self.handle.write("seed=%d\n" % env.unwrapped.seedval)
         self.overwrite = overwrite
         self.max_time = max_time or 999
         self.min_distance = min_distance or 0
@@ -69,13 +69,13 @@ class RecordWrapper(gym.Wrapper):
         self.discarded_episodes = []
 
     def step(self, action):
-        obs, reward, terminated, info = self.env.step(action)
+        obs, reward, terminated, truncated, info = self.env.step(action)
         self.actions.append(str(action))
 
         if terminated:
             ep_info = "episode with time=%.2f" % info["time"]
             ep_info += " and distance=%.2f" % info["distance"]
-            incomplete = action == self.env.action_t
+            incomplete = action == self.env.unwrapped.action_t
 
             if incomplete:
                 print("Discarded %s (incomplete)" % ep_info)
@@ -107,7 +107,7 @@ class RecordWrapper(gym.Wrapper):
         elif info.get("manual_restart"):
             self.actions = []
 
-        return obs, reward, terminated, info
+        return obs, reward, terminated, truncated, info
 
 
 class Replayer:
@@ -119,7 +119,9 @@ class Replayer:
     def predict(self, _obs):
         self.i += 1
         action = next(self.iterator, None)
-        assert action is not None, f"Unexpected end of recording -- check seeds"
+        assert (
+            action is not None
+        ), f"Unexpected end of recording -- check seed, frames_per_step and steps_per_step"
         return (action, None)
 
 
@@ -240,24 +242,30 @@ def load_recording(recfile):
 # We fast-forward the "skip" episodes by disabling auto-draw and calling
 # .step() as fast as possible
 def skip_episode(env, steps_per_step, model):
-    done = False
+    terminated = False
 
     # Disable auto-draw
     old_auto_draw = env.unwrapped.auto_draw
     env.unwrapped.auto_draw = False
 
-    if hasattr(env, "disable_verbose_wrapper"):
-        env.disable_verbose_wrapper()
+    try:
+        env.get_wrapper_attr("disable_verbose_wrapper")()
+    except AttributeError:
+        # no verbose wrapper => nothing to disable
+        pass
 
-    while not done:
+    while not terminated:
         action, _ = model.predict(None)
         for _ in range(steps_per_step):
-            _, _, done, _ = env.step(action)
-            if done:
+            _, _, terminated, _, _ = env.step(action)
+            if terminated:
                 break
 
-    if hasattr(env, "enable_verbose_wrapper"):
-        env.enable_verbose_wrapper()
+    try:
+        env.get_wrapper_attr("enable_verbose_wrapper")()
+    except AttributeError:
+        # no verbose wrapper => nothing to disable
+        pass
 
     env.unwrapped.auto_draw = old_auto_draw
 
@@ -337,18 +345,17 @@ def lr_from_schedule(schedule):
 
 
 def play_model(env, fps, steps_per_step, model, obs):
-    done = False
+    terminated = False
     normfps = 30  # ~ game fps at "normal" speed
     t1 = time.time()
     clock = Clock(fps)
-    done = False
 
-    while not done:
+    while not terminated:
         action, _states = model.predict(obs)
         for _ in range(steps_per_step):
-            obs, reward, done, info = env.step(action)
+            obs, reward, terminated, truncated, info = env.step(action)
             clock.tick()
-            if done:
+            if terminated:
                 break
 
 

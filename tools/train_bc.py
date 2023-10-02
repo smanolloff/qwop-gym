@@ -28,7 +28,7 @@ import tools.common as common
 def train_model(
     venv, seed, learner_kwargs, transitions, n_epochs, out_dir, log_tensorboard
 ):
-    venv.env_method("reload", seed)
+    venv.env_method("reset", seed)
     rng = np.random.default_rng(seed)
     log = None
 
@@ -80,7 +80,7 @@ def get_actions_and_sample_until_fns(venv, rec):
             action = next(global_state["cur_episode"]["actions"], None)
             assert (
                 action is None
-            ), f"Expected end of episode, but have action {action} -- check seeds"
+            ), f"Expected end of episode, but have action {action} -- check seed and frames_per_step"
 
             # should never happen if `sample_until` has been returning false
             assert global_state["next_episode"] is not None, f"Expected more episodes"
@@ -101,7 +101,9 @@ def get_actions_and_sample_until_fns(venv, rec):
                 print("Replayed episode %d" % global_state["episode_no"])
 
         action = next(global_state["cur_episode"]["actions"], None)
-        assert action is not None, f"Unexpected end of recording -- check seeds"
+        assert (
+            action is not None
+        ), f"Unexpected end of recording -- check seed and frames_per_step"
         return [action], state
 
     def sample_until(_trajectories):
@@ -130,7 +132,7 @@ def collect_transitions(venv, recs):
     for rec in recs:
         print("Collecting transitions from %s" % rec["file"])
         rng = np.random.default_rng(rec["seed"])
-        venv.env_method("reload", rec["seed"])
+        venv.env_method("reset", rec["seed"])
 
         get_actions_fn, sample_until_fn = get_actions_and_sample_until_fns(venv, rec)
         env_rollouts = rollout.rollout(get_actions_fn, venv, sample_until_fn, rng=rng)

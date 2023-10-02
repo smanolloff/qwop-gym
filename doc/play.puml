@@ -16,7 +16,7 @@ script -> env: <font color="gray"><i>2 = "W"</i></font>\n.step(2)
 env -> browser: (data)
 note over browser: no render
 browser --> env: (obs data)
-env --> script: (obs, rew, term, info)
+env --> script: (obs, rew, term, trunc, info)
 
 script -> env: .render()
 env -> browser: (data)

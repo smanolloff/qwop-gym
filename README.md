@@ -22,7 +22,7 @@ You should also check this [video](https://www.youtube.com/watch?v=2qNKjRwcx74) 
 
 ## Getting started
 
-1. Install [Python](https://www.python.org/downloads/) 3.10
+1. Install [Python](https://www.python.org/downloads/) 3.10 or higher
 1. Install a chrome-based web browser (Google Chrome, Brave, Chromium, etc.)
 1. Download [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) 116.0 or higher
 1. (optional) Have general knowledge of Python, JavaScript, WebSockets, Gym and RL algorithms
@@ -101,6 +101,19 @@ python qwop-gym.py spectate
 
 ### Imitation
 
+Imitation learning is powered by the
+[`imitation`](https://github.com/HumanCompatibleAI/imitation) library, which
+can only work with the deprecated `gym` package and is incompatible QwopEnv
+To work around this, a separate branch called `gym-compat` should be used:
+
+```bash
+# In this branch, QwopEnv supports the deprecated `gym` library
+git checkout gym-compat
+
+# Note that python-3.10 is required, see notes in requirements.txt
+pip install -r requirements.txt
+```
+
 For imitation learning, first record some of your own games:
 
 ```bash
@@ -116,9 +129,16 @@ python qwop-gym.py train_bc
 ### W&B sweeps
 
 If you are a fan of [W&B sweeps](https://docs.wandb.ai/guides/sweeps), you can 
-use the provided configs in `config/wandb/` and create your sweeps like so:
+use the provided configs in `config/wandb/` and create your own sweeps.
+
+`wandb` is a rather bulky dependency and is not installed by default. Open
+`requirements.txt` to uncomment the `wandb` line, then run
+`pip install -r requirements.txt` before proceeding with the below examples.
 
 ```bash
+# first make sure the `wandb` line is uncommented in requirements.txt
+# and run `pip install -r requirements.txt`
+
 # create a new W&B sweep
 wandb sweep config/wandb/qrdqn.yml
 
@@ -180,10 +200,10 @@ improvements:
 as soon as it's put in the background (on OS X at least). Ideally, the browser
 should run in a headless mode, but I couldn't find a headless browser that can
 support WebGL.
-* `gym` is deprecated since October 2022 and this project should be migrated to
-`gymnasium` as soon as
-[this](https://github.com/HumanCompatibleAI/imitation/pull/735) is out of the
-way.
+* `gym` is deprecated since October 2022, but the `imitation` library still
+does not officially support `gymnasium`. As soon as that is addressed, there
+will no longer be required to use the special `gym-compat` branch here for
+imitation learning.
 * `wandb` uses a monkey-patch for collecting tensorboard logs which does not
 work well with GAIL/AIRL/BC (and possibly other algos from `imitation`). As a
 result, graphs in wandb have weird names. This is mostly an issue with `wandb`

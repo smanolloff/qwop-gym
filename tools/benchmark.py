@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 
-import gym
+import gymnasium as gym
 import time
 
 
@@ -26,7 +26,7 @@ def benchmark(steps):
         time_start = time.time()
 
         for i in range(steps):
-            _obs, _rew, term, _info = env.step(0)
+            _obs, _rew, term, trunc, _info = env.step(0)
 
             if term:
                 env.reset()

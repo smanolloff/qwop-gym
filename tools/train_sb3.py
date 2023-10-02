@@ -18,7 +18,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common import logger
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.utils import safe_mean
-from gym.wrappers import TimeLimit
+from gymnasium.wrappers import TimeLimit
 import os
 import time
 import math

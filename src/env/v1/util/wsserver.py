@@ -99,7 +99,7 @@ class WSServer:
         loop = asyncio.get_event_loop()
         loop.create_task(self.check_shutdown())
 
-        if os.name == 'posix':
+        if os.name == "posix":
             loop.add_signal_handler(signal.SIGINT, self.cleanup_and_exit)
             loop.add_signal_handler(signal.SIGTERM, self.cleanup_and_exit)
 
@@ -121,6 +121,8 @@ class WSServer:
             self.port = server.sockets[0].getsockname()[1]
 
             self.logger.info("Listening on port %d" % self.port)
+
+            task = None
 
             # wait until driver connects
             if self.driver and self.browser:

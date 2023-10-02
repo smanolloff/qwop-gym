@@ -1,36 +1,15 @@
-# Dependency issues arise because `imitation` (as of this writing)
-# still not compatible with `gymnasium` and depends on the `gym` package.
-# (see https://github.com/HumanCompatibleAI/imitation/pull/735)
-#
-# `gym` is no longer supported
-# (see https://github.com/openai/gym#important-notice)
-#
-# Most dependencies have already switched to gymnasium
-# (see https://github.com/DLR-RM/stable-baselines3/releases/tag/v2.0.0)
-#
-# so some of the packages are pinned to a lower version.
-# Also, older versions of pip & setuptools are needed:
-# https://github.com/openai/gym/issues/3176#issuecomment-1560026649
-#
-#     $ pip install setuptools==65.5.0 pip==21
-#
-# The above might not work with Python-3.11 and Python-3.10 may be required.
-#
-
-stable_baselines3 == 1.8.0
-sb3-contrib == 1.8.0
-
+stable_baselines3 == 2.1.0
+sb3-contrib == 2.1.0
 websockets >= 11.0.3
 numpy >= 1.24.3
 selenium >= 4.11.2
 pygame >= 2.5.1
-imitation >= 0.4.0
-gym >= 0.21.0
+gymnasium >= 0.29.1
 tensorboard
 tensorflow
 pyyaml
 tqdm
 rich
 
-# Also uncomment this if you will be using wandb
+# Uncomment this if you will be using wandb
 #wandb

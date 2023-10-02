@@ -16,7 +16,7 @@
 
 import random
 import time
-import gym
+import gymnasium as gym
 
 
 def perftest():
@@ -27,8 +27,8 @@ def perftest():
         t1 = time.time()
 
         for i in range(n_steps):
-            (obs, rew, term, inf) = env.step(random.randint(0, 3))
-            if term:
+            (obs, rew, term, trunc, inf) = env.step(random.randint(0, 3))
+            if term or trunc:
                 env.reset()
 
         t2 = time.time()

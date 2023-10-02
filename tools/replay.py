@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 
-import gym
+import gymnasium as gym
 import time
 import tools.common as common
 
@@ -28,10 +28,13 @@ def replay(fps, recordings, reset_delay, steps_per_step):
             print("Replaying episodes from %s" % rec["file"])
 
             if env:
-                obs = env.reload(rec["seed"])
+                obs, _ = env.reset(seed=rec["seed"])
             else:
                 env = gym.make("QwopEnv-v1", seed=rec["seed"])
-                obs = env.reset()
+                # 2 resets are needed as gymnasium.utils.play also
+                # calls it twice after init
+                env.reset()
+                obs, _ = env.reset()
 
             for i, episode in enumerate(rec["episodes"], 1):
                 model = common.Replayer(episode["actions"])
@@ -39,7 +42,7 @@ def replay(fps, recordings, reset_delay, steps_per_step):
                 if episode["skip"]:
                     print("Skipping episode %d" % i)
                     common.skip_episode(env, steps_per_step, model)
-                    obs = env.reset()
+                    obs, _ = env.reset()
                 else:
                     if episode_ended_at:
                         sleep_for = reset_delay - (time.time() - episode_ended_at)
@@ -49,7 +52,7 @@ def replay(fps, recordings, reset_delay, steps_per_step):
 
                     common.play_model(env, fps, steps_per_step, model, obs)
                     episode_ended_at = time.time()
-                    obs = env.reset()
+                    obs, _ = env.reset()
 
                 # Recorded episodes should termiate at exactly the last action
                 assert next(model.iterator, None) is None, f"Trailing actions"

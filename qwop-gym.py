@@ -1,3 +1,19 @@
+# =============================================================================
+# Copyright 2023 Simeon Manolov <s.manolloff@gmail.com>.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
 import sys
 import os
 import importlib
@@ -44,6 +60,7 @@ def main(action, cfg, tag=None):
                 model_cls=cfg.get("model_cls", "PPO"),
             )
         case "train_bc":
+            print_imitation_error_and_exit()
             from tools.train_bc import train_bc
 
             run_config = deepcopy(
@@ -69,6 +86,7 @@ def main(action, cfg, tag=None):
             )
             print("saved run metadata.")
         case "train_gail" | "train_airl":
+            print_imitation_error_and_exit()
             from tools.train_adversarial import train_adversarial
 
             trainer_cls = action.split("_")[-1].upper()
@@ -150,6 +168,14 @@ def main(action, cfg, tag=None):
             benchmark(steps=cfg.get("steps", 10000))
         case _:
             print("Unknown action: %s" % action)
+
+
+# XXX: temporary until `imitation` release a gymnasium-compatible version
+def print_imitation_error_and_exit():
+    print(
+        "If you want to do imitation learning, please use the `gym-compat` git branch"
+    )
+    sys.exit(1)
 
 
 if __name__ == "__main__":

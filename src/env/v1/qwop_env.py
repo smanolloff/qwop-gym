@@ -17,7 +17,7 @@
 import socket
 import numpy as np
 import multiprocessing
-import gym
+import gymnasium as gym
 import itertools
 import functools
 import PIL
@@ -85,7 +85,7 @@ class Normalizable:
 
 
 class QwopEnv(gym.Env):
-    metadata = {"render.modes": ["browser", "rgb_array"]}
+    metadata = {"render_modes": ["browser", "rgb_array"], "render_fps": 30}
 
     def __init__(
         self,
@@ -233,24 +233,20 @@ class QwopEnv(gym.Env):
             self.keyflags_c.append(0)
             self.action_cmdflags.append(0)
 
-    def seed(self, seed=None):
-        # Can't re-seed -- the game has already been initialized
-        # self.logger.warn("env.seed(v) has no effect, use env.reload(v) instead")
-        if seed is not None:
-            self.reload(seed)
+    def reset(self, seed=None, options=None):
+        super().reset(seed=seed)
 
-    def reset(self):
         self._reset_env()
-        reaction = self._restart_game(reload_page=self.reload_on_reset)
-        return reaction.ndata
+        needs_reload = self.reload_on_reset
 
-    # A custom type of "reset" that changes QWOP's seed
-    # (it can be changed ONLY if reloading the page)
-    def reload(self, seed):
-        assert seed >= 0 and seed <= np.iinfo(np.int32).max
-        self.seedval = seed
-        self._restart_game(reload_page=True)
-        return self.reset()
+        if seed is not None:
+            # QWOP's seed can be changed ONLY if reloading the page
+            assert seed >= 0 and seed <= np.iinfo(np.int32).max
+            self.seedval = seed
+            needs_reload = True
+
+        reaction = self._restart_game(reload_page=needs_reload)
+        return reaction.ndata, self._build_info(reaction)
 
     def _reset_env(self):
         self.steps = 0
@@ -271,18 +267,13 @@ class QwopEnv(gym.Env):
         reaction = self._perform_action(action)
         reward = self._calc_reward(reaction, self.last_reaction)
         terminated = reaction.game_over or action == self.action_t
-        info = {
-            "time": reaction.time,
-            "distance": reaction.distance,
-            "avgspeed": reaction.distance / reaction.time,
-            "is_success": reaction.is_success,
-        }
+        info = self._build_info(reaction)
 
         self.last_reward = reward  # QWOP stats
         self.total_reward += reward  # QWOP stats
         self.last_reaction = reaction  # needed for reward calc
 
-        return reaction.ndata, reward, terminated, info
+        return reaction.ndata, reward, terminated, False, info
 
     def _perform_action(self, action):
         cmdflags = WSProto.CMD_STP | self.action_cmdflags[action]
@@ -341,6 +332,14 @@ class QwopEnv(gym.Env):
                 rew -= self.failure_cost
 
         return rew
+
+    def _build_info(self, reaction):
+        return {
+            "time": reaction.time,
+            "distance": reaction.distance,
+            "avgspeed": reaction.distance / reaction.time,
+            "is_success": reaction.is_success,
+        }
 
     def render(self, render_mode="browser"):
         match self.render_mode:
