@@ -33,5 +33,4 @@ tqdm
 rich
 
 # Also uncomment this if you will be using wandb
-
-wandb
+#wandb

@@ -2,6 +2,7 @@
 *.sublime-project
 __pycache__/
 /.venv
+/.venv-3.10
 /vendor
 /wandb
 /data
