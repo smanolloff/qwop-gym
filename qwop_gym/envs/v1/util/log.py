@@ -17,7 +17,6 @@
 import logging
 import hashlib
 from datetime import datetime
-from rich.logging import RichHandler
 
 from .wsproto import WSProto
 

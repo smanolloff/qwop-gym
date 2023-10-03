@@ -25,7 +25,7 @@ You should also check this [video](https://www.youtube.com/watch?v=2qNKjRwcx74) 
 1. Install [Python](https://www.python.org/downloads/) 3.10 or higher
 1. Install a chrome-based web browser (Google Chrome, Brave, Chromium, etc.)
 1. Download [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) 116.0 or higher
-1. Install the `qwop-gym` package and patch QWOP.min.js
+1. Install the `qwop-gym` package and patch QWOP.min.js from your terminal:
 
 ```bash
 pip install qwop-gym
@@ -34,7 +34,7 @@ pip install qwop-gym
 curl -sL https://www.foddy.net/QWOP.min.js | qwop-gym patch
 ```
 
-Create an instance:
+Create an instance in your code:
 
 ```python
 import qwop_gym
@@ -44,8 +44,8 @@ env = gym.make("QWOP-v1", browser="/browser/path", driver="/driver/path")
 
 ## The `qwop-gym` tool
 
-The `qwop-gym` executable is a handy tool which makes it easy to play,
-record and replay episodes, train agents and more.
+The `qwop-gym` executable is a handy command-line tool which makes it easy to
+play, record and replay episodes, train agents and more.
 
 Firstly, perform the initial setup:
 
