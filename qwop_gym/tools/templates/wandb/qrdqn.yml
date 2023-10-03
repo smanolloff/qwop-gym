@@ -1,0 +1,51 @@
+---
+program: wandb-agent.py
+project: qwop-gym
+method: grid
+metric:
+  name: rollout/ep_rew_mean
+  goal: maximize
+parameters:
+  action: { value: train_qrdqn }
+  c:
+    parameters:
+      model_load_file: { value: ~ }
+      out_dir_template: { value: "data/QRDQN-{run_id}" }
+      log_tensorboard: { value: true }
+      total_timesteps: { value: 32e6 }
+      max_episode_steps: { value: 1000 }
+      n_checkpoints: { value: 50 }
+      learner_kwargs:
+        parameters:
+          policy: { value: "MlpPolicy" }
+          buffer_size: { value: 100000 }
+          learning_starts: { value: 100000 }
+          batch_size: { value: 64 }
+          tau: { value: 1.0 }
+          gamma: { value: 0.997 }
+          train_freq: { value: 4 }
+          gradient_steps: { value: 1 }
+          target_update_interval: { value: 512 }
+          exploration_fraction: { value: 0.3 }
+          exploration_initial_eps: { value: 0.2 }
+          exploration_final_eps: { value: 0 }
+      learner_lr_schedule: { value: "const_0.001" }
+      env_kwargs:
+        parameters:
+          driver: { value: "/path/to/chromedriver" }
+          browser: { value: "/path/to/browser" }
+          render_mode: { value: "browser" }
+          failure_cost: { value: 10 }
+          success_reward: { value: 50 }
+          time_cost_mult: { value: 10 }
+          frames_per_step: { value: 4 }
+          stat_in_browser: { value: false }
+          game_in_browser: { value: false }
+          text_in_browser: { value: ~ }
+          reload_on_reset: { value: false }
+          auto_draw: { value: false }
+          browser_mock: { value: false }
+          reduced_action_set: { value: true }
+          t_for_terminate: { value: false }
+          text_in_browser: { value: "Do not close this window, training in progress..." }
+          loglevel: { value: "WARN" }

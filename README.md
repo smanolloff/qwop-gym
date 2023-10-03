@@ -25,35 +25,45 @@ You should also check this [video](https://www.youtube.com/watch?v=2qNKjRwcx74) 
 1. Install [Python](https://www.python.org/downloads/) 3.10 or higher
 1. Install a chrome-based web browser (Google Chrome, Brave, Chromium, etc.)
 1. Download [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) 116.0 or higher
-1. (optional) Have general knowledge of Python, JavaScript, WebSockets, Gym and RL algorithms
-1. (optional) Create a [W&B](https://wandb.ai) account
-
-Install python dependencies:
+1. Install the `qwop-gym` package and patch QWOP.min.js
 
 ```bash
-pip install -r requirements.txt
+pip install qwop-gym
+
+# Fetch & patch QWOP source code
+curl -sL https://www.foddy.net/QWOP.min.js | qwop-gym patch
 ```
 
-> [!NOTE]  
-> Check the notes in `requirements.txt` if you are getting errors during installation.
+Create an instance:
 
-Download QWOP.min.js and patch it:
+```python
+import qwop_gym
 
-```bash
-curl -sL https://www.foddy.net/QWOP.min.js | python src/game/patcher.py
+env = gym.make("QWOP-v1", browser="/browser/path", driver="/driver/path")
 ```
 
-Configure `browser` and `webdriver` paths in [`./config/env.yml`](./config/env.yml), then try it out:
+## The `qwop-gym` tool
 
-```bash
-python qwop-gym.py play
+The `qwop-gym` executable is a handy tool which makes it easy to play,
+record and replay episodes, train agents and more.
+
+Firstly, perform the initial setup:
+
+```
+qwop-gym bootstrap
 ```
 
-Explore the other commands supported by `qwop-gym.py`:
+Play the game (use Q, W, O, P keys):
 
 ```bash
-$ python qwop-gym.py -h
-usage: qwop-gym.py [options] <action>
+qwop-gym play
+```
+
+Explore the other available commands:
+
+```bash
+$ qwop-gym -h
+usage: qwop-gym [options] <action>
 
 options:
   -h, --help  show this help message and exit
@@ -70,17 +80,19 @@ action:
   train_qrdqn       train using Quantile Regression DQN (QRDQN)
   spectate          watch a trained model play QWOP, optionally recording actions
   benchmark         evaluate the actions/s achievable with this env
+  bootstrap         perform initial setup
+  patch             apply patch to original QWOP.min.js code
   help              print this help message
 
 examples:
-  qwop-gym.py play
-  qwop-gym.py play -c config/record.yml 
+  qwop-gym play
+  qwop-gym -c config/record.yml play
 ```
 
 For example, to train a PPO agent, edit [`config/ppo.yml`](./config/ppo.yml) and run:
 
 ```bash
-python qwop-gym.py train_ppo
+python qwop-gym train_ppo
 ```
 
 > [!WARNING]
@@ -96,22 +108,28 @@ tensorboard --logdir data/
 Configure `model_file` in [`config/spectate.yml`](./config/spectate.yml) and watch your trained agent play the game:
 
 ```bash
-python qwop-gym.py spectate
+python qwop-gym spectate
 ```
 
 ### Imitation
 
-Imitation learning is powered by the
-[`imitation`](https://github.com/HumanCompatibleAI/imitation) library, which
-can only work with the deprecated `gym` package and is incompatible QwopEnv
-To work around this, a separate branch called `gym-compat` should be used:
+> [!NOTE]
+> Imitation learning is powered by the
+> [`imitation`](https://github.com/HumanCompatibleAI/imitation) library, which
+> depends on the deprecated `gym` library which makes it incompatible with
+> QwopEnv. This can be resolved as soon as `imitation` introduces support for
+> `gymnasium`. As a workaround, you can checkout the `qwop-gym` project
+> locally and use the `gym-compat` branch instead.
 
 ```bash
-# In this branch, QwopEnv supports the deprecated `gym` library
+# In this branch, QwopEnv works with the deprecated `gym` library
 git checkout gym-compat
 
 # Note that python-3.10 is required, see notes in requirements.txt
 pip install -r requirements.txt
+
+# Patch the game again as this branch works with different paths
+curl -sL https://www.foddy.net/QWOP.min.js | python -m src.game.patcher
 ```
 
 For imitation learning, first record some of your own games:
@@ -128,17 +146,13 @@ python qwop-gym.py train_bc
 
 ### W&B sweeps
 
-If you are a fan of [W&B sweeps](https://docs.wandb.ai/guides/sweeps), you can 
+If you are a fan of [W&B](https://docs.wandb.ai/guides/sweeps), you can 
 use the provided configs in `config/wandb/` and create your own sweeps.
 
-`wandb` is a rather bulky dependency and is not installed by default. Open
-`requirements.txt` to uncomment the `wandb` line, then run
-`pip install -r requirements.txt` before proceeding with the below examples.
+`wandb` is a rather bulky dependency and is not installed by default. Install
+it with `pip install wandb` before proceeding with the below examples.
 
 ```bash
-# first make sure the `wandb` line is uncommented in requirements.txt
-# and run `pip install -r requirements.txt`
-
 # create a new W&B sweep
 wandb sweep config/wandb/qrdqn.yml
 
@@ -146,14 +160,12 @@ wandb sweep config/wandb/qrdqn.yml
 wandb agent <username>/qwop/<sweep>
 ``` 
 
-You can check out my W&B QWOP project [here](https://wandb.ai/s-manolloff/qwop-gym).
-Keep in mind that I have not put much effort in writing meaningful names or
-descriptions to my sweeps/runs, plus it contains runs from older iterations
-of the env, which might look confusing. At the very least, you can find
-model artifacts (zip files) of some top-performing agents.
-
-Check out this [youtube video](https://www.youtube.com/watch?v=2qNKjRwcx74) for
-a showcase of my trained agents.
+You can check out my W&B public QWOP project
+[here](https://wandb.ai/s-manolloff/qwop-gym).
+There you can find pre-trained model artifacts (zip files) of some
+well-performing agents, as well as see how they compare to each other. This
+[youtube video](https://www.youtube.com/watch?v=2qNKjRwcx74) showcases some of
+them.
 
 ![banner](./doc/banner.gif)
 
@@ -166,25 +178,28 @@ Details about the QWOP game can be found [here](./doc/game.md)
 ## Similar projects
 
 * https://github.com/Wesleyliao/QWOP-RL
+* https://github.com/drakesvoboda/RL-QWOP
 * https://github.com/juanto121/qwop-ai
 * https://github.com/ShawnHymel/qwop-ai
 
 In comparison, qwop-gym offers several key features:
 * the env is _performant_ - perfect for on-policy algorithms as observations
 can be collected at great speeds (more than 2000 observations/sec on an Apple
-M2 CPU - orders of magnitute faster than the other QWOP RL envs)
+M2 CPU - orders of magnitute faster than the other QWOP RL envs).
 * the env satisfies the _Markov property_ - there are no race conditions and
 randomness can be removed if desired, so recorded episodes are 100% replayable
 * the env has a _simple reward model_ and compared to other QWOP envs, it is
 less biased, eg. no special logic for stuff like _knee bending_,
 _low torso height_, _vertical movement_, etc.
 * the env allows all possible key combinations (15), other QWOP envs usually
-allow only the "useful" 8 key combinations
+allow only the "useful" 8 key combinations.
 * great results (fast, human-like running) achieved by RL agents trained
 entirely through self-play, without pre-recorded expert demonstrations
-* qwop-rl already contains scripts for training with 6 different algorithms and
-adding more to the list is simple - this makes it suitable for exploring and/or
-benchmarking a variety of RL algorithms
+* qwop-gym already contains scripts for training with 6 different algorithms
+and adding more to the list is simple - this makes it suitable for exploring
+and/or benchmarking a variety of RL algorithms.
+* qwop-gym uses reliable open-source implementations of RL algorithms in
+contrast to many other projects using "roll-your-own" implementations.
 * QWOP's original JS source code is barely modified: 99% of all extra
 functionality is designed as a plugin, bundled separately and only a "diff"
 of QWOP.min.js is published here (in respect to Benett Foddy's kind request
@@ -209,6 +224,8 @@ work well with GAIL/AIRL/BC (and possibly other algos from `imitation`). As a
 result, graphs in wandb have weird names. This is mostly an issue with `wandb`
 and/or `imitation` libraries, however there could be a way to work around this
 here.
+* firefox browser and geckodriver are not supported as an alternative
+browser/driver pair, but adding support for them should be fairly easy
 
 ## Contributing
 

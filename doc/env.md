@@ -1,6 +1,6 @@
 # RL Environment
 
-Here you will find details about the `QwopEnv-v1` Gym environment.
+Here you will find details about the `QWOP-v1` Gym environment.
 
 ## Starting
 
@@ -17,28 +17,15 @@ other. Check the [Bootstrap process](#bootstrap-process) and
 To start the env:
 
 ```python
-from src.env.v1.qwop_env import QwopEnv
+import qwop_gym
 
-env = QwopEnv(
+env = gymnasium.make(
+  "QWOP-v1",
   browser="/path/to/browser",
   driver="/path/to/chromedriver",
   auto_draw=True,
   stat_in_browser=True,
 )
-```
-
-And in case you need it registered in `gymnasium`:
-
-```python
-import gymnasium
-
-gymnasium.register(
-  "QwopEnv-v1",
-  entry_point="src.env.v1.qwop_env:QwopEnv",
-  kwargs={"browser": "...", "driver": "..."}
-)
-
-env = gymnasium.make("QwopEnv-v1")
 ```
 
 ## <a id="actions"></a> 🕹️ Actions

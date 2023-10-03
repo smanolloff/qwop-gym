@@ -14,7 +14,29 @@
 # limitations under the License.
 # =============================================================================
 
-from qwop_gym.tools.main import main
+import gymnasium as gym
+import time
 
-if __name__ == "__main__":
-    main()
+
+def benchmark(steps):
+    env = gym.make("local/QWOP-v1")
+
+    try:
+        env.reset()
+        time_start = time.time()
+
+        for i in range(steps):
+            _obs, _rew, term, trunc, _info = env.step(0)
+
+            if term:
+                env.reset()
+
+            if i % 1000 == 0:
+                percentage = (i / steps) * 100
+                print("\r%d%%..." % percentage, end="", flush=True)
+
+        seconds = time.time() - time_start
+        sps = steps / seconds
+        print("\n\n%.2f steps/s (%s steps in %.2f seconds)" % (sps, steps, seconds))
+    finally:
+        env.close()

@@ -14,7 +14,11 @@
 # limitations under the License.
 # =============================================================================
 
-from qwop_gym.tools.main import main
+import gymnasium
+from .envs.v1.qwop_env import QwopEnv
+from .wrappers.verbose_wrapper import VerboseWrapper
+from .wrappers.record_wrapper import RecordWrapper
 
-if __name__ == "__main__":
-    main()
+all = [QwopEnv, VerboseWrapper, RecordWrapper]
+
+gymnasium.register(id="QWOP-v1", entry_point="qwop_gym:QwopEnv")

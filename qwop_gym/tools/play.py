@@ -14,7 +14,21 @@
 # limitations under the License.
 # =============================================================================
 
-from qwop_gym.tools.main import main
+import os
+import time
+import gymnasium as gym
+import gymnasium.utils.play
 
-if __name__ == "__main__":
-    main()
+from . import common
+
+
+def play(seed, run_id, fps):
+    env = gym.make("local/QWOP-v1", seed=seed)
+    rec_file = None
+
+    try:
+        # Unfortunately, this will immediately reset on termination
+        # (gym.utils.play() does not allow control over this)
+        gym.utils.play.play(env, fps=fps)
+    finally:
+        env.close()

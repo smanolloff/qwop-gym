@@ -14,7 +14,38 @@
 # limitations under the License.
 # =============================================================================
 
-from qwop_gym.tools.main import main
+import gymnasium as gym
+import time
+import importlib
 
-if __name__ == "__main__":
-    main()
+from . import common
+
+
+def load_model(mod_name, cls_name, file):
+    print("Loading %s model from %s" % (cls_name, file))
+    mod = importlib.import_module(mod_name)
+
+    if cls_name == "BC":
+        return mod.reconstruct_policy(file)
+
+    return getattr(mod, cls_name).load(file)
+
+
+def spectate(
+    fps,
+    reset_delay,
+    steps_per_step,
+    model_file,
+    model_mod,
+    model_cls,
+):
+    model = load_model(model_mod, model_cls, model_file)
+    env = gym.make("local/QWOP-v1")
+
+    try:
+        while True:
+            obs, info = env.reset()
+            common.play_model(env, fps, steps_per_step, model, obs)
+            time.sleep(reset_delay)
+    finally:
+        env.close()

@@ -1,0 +1,32 @@
+---
+# An alternate configuration for the `play` command
+# See `play.yml` for more info on the config parameters
+fps: 30
+reset_delay: 1
+env_kwargs:
+  __include__: "config/env.yml"
+  render_mode: "rgb_array"
+  t_for_terminate: true
+  stat_in_browser: true
+  game_in_browser: false
+  text_in_browser: "Recording your play (press Escape to exit)"
+
+env_wrappers:
+  - module: "qwop_gym"
+    cls: "VerboseWrapper"
+
+  # RecordWrapper records episodes to a file
+  - module: "qwop_gym"
+    cls: "RecordWrapper"
+    kwargs:
+      # [string] Path to the file to store recorded episodes.
+      rec_file: "data/recordings/recording-1.rec"
+
+      # [bool] Overwrite out_file if already exists
+      overwrite: true
+
+      # [int] (optional) Discard episode if time > `max_time`
+      max_time: 10
+
+      # [int] (optional) Discard episode if distance < `min_distance`
+      min_distance: 3

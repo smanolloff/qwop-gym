@@ -1,0 +1,25 @@
+---
+# [int] Frames per second (use 30 for a genuine QWOP experience)
+fps: 30
+
+# [int] End-game screen duration in seconds
+reset_delay: 1
+
+# Env parameters
+# The special "__include__" key allows to load them from another file.
+# Keys listed here take precedence over keys loaded with __include__.
+# See notes in `env.yml` for more info
+env_kwargs:
+  __include__: "config/env.yml"
+  render_mode: "rgb_array"
+  t_for_terminate: true
+  stat_in_browser: true
+  game_in_browser: false
+  text_in_browser: "You are playing (press Escape to exit)"
+
+# List of gym wrappers to use for the env
+# Each list element must be a dict with "module", "cls" and "kwargs" keys
+env_wrappers:
+  # VerboseWrapper prints action and some game stats on each step
+  - module: "qwop_gym"
+    cls: "VerboseWrapper"

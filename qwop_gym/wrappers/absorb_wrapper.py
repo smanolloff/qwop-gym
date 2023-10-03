@@ -14,7 +14,27 @@
 # limitations under the License.
 # =============================================================================
 
-from qwop_gym.tools.main import main
+import gymnasium as gym
 
-if __name__ == "__main__":
-    main()
+
+class AbsorbWrapper(gym.Wrapper):
+    """Return terminated=False and the last non-terminal observation forever"""
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.terminal_return = None
+
+    def reset(self, *args, **kwargs):
+        self.terminal_return = None
+        return self.env.reset(*args, **kwargs)
+
+    def step(self, action):
+        if self.terminal_return is not None:
+            return self.terminal_return
+
+        obs, reward, terminated, truncated, info = self.env.step(action)
+
+        if terminated:
+            self.terminal_return = (obs, reward, False, truncated, info)
+
+        return obs, reward, False, truncated, info

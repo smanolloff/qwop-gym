@@ -50,8 +50,7 @@ if __name__ == "__main__":
         out_dir=out_dir,
     )
 
-    main = importlib.import_module("qwop-gym").main
-    main(action, config)
+    importlib.import_module("qwop-gym").run(action, config)
 
     wandb.save(f"{out_dir}/model.zip", base_path=out_dir)
     wandb.save(f"{out_dir}/metadata.yml", base_path=out_dir)

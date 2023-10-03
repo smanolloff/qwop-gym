@@ -1,15 +1,13 @@
-stable_baselines3 == 2.1.0
-sb3-contrib == 2.1.0
+gymnasium >= 0.29.1
 websockets >= 11.0.3
 numpy >= 1.24.3
 selenium >= 4.11.2
-pygame >= 2.5.1
-gymnasium >= 0.29.1
+pillow >= 10.0.1
+stable_baselines3 == 2.1.0
+sb3-contrib == 2.1.0
 tensorboard
 tensorflow
 pyyaml
 tqdm
 rich
-
-# Uncomment this if you will be using wandb
 #wandb

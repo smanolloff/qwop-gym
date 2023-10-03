@@ -1,0 +1,69 @@
+---
+program: wandb-agent.py
+project: qwop-gym
+method: grid
+metric:
+  name: rollout/ep_rew_mean
+  goal: maximize
+parameters:
+  action: { value: train_gail }
+  c:
+    parameters:
+      recordings: { value: ["data/recordings/*.rec"] }
+      out_dir_template: { value: "data/GAIL_PPO-{run_id}" }
+      log_tensorboard: { value: true }
+      episode_len: { value: 1000 }
+      total_timesteps: { value: 10000 }
+      trainer_kwargs:
+        parameters:
+          demo_batch_size: { value: 1024 }
+          demo_minibatch_size: { value: ~ }
+          n_disc_updates_per_round: { value: 4 }
+          log_dir: { value: ~ }
+          gen_train_timesteps: { value: ~ }
+          gen_replay_buffer_capacity: { value: ~ }
+          debug_use_ground_truth: { value: false }
+          allow_variable_horizon: { value: false }
+      learner_module: { value: "stable_baselines3" }
+      learner_cls: { value: "PPO" }
+      learner_kwargs:
+        parameters:
+          policy: { value: "MlpPolicy" }
+          use_sde: { value: false }
+          sde_sample_freq: { value: 4 }
+          n_steps: { value: 64 }
+          batch_size: { value: 32 }
+          n_epochs: { value: 10 }
+          gamma: { value: 0.9 }
+          gae_lambda: { value: 0.98 }
+          clip_range: { value: 0.4 }
+          normalize_advantage: { value: true }
+          ent_coef: { value: 0.001 }
+          vf_coef: { value: 0.5 }
+          max_grad_norm: { value: 3 }
+      learner_lr_schedule:
+        parameters:
+          fn: { value: "const" }
+          initial_value: { value: 0.003 }
+          step: { value: 0.75 }
+          decays: { value: 20 }
+          min_value: { value: 0.00005 }
+      env_kwargs:
+        parameters:
+          driver: { value: "/path/to/chromedriver" }
+          browser: { value: "/path/to/browser" }
+          render_mode: { value: "browser" }
+          failure_cost: { value: 10 }
+          success_reward: { value: 50 }
+          time_cost_mult: { value: 10 }
+          frames_per_step: { value: 1 }
+          stat_in_browser: { value: false }
+          game_in_browser: { value: false }
+          text_in_browser: { value: ~ }
+          reload_on_reset: { value: false }
+          auto_draw: { value: false }
+          browser_mock: { value: false }
+          reduced_action_set: { value: false }
+          t_for_terminate: { value: false }
+          text_in_browser: { value: "Do not close this window, training in progress..." }
+          loglevel: { value: "WARN" }
