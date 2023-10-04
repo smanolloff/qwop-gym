@@ -197,9 +197,9 @@ reset _will_ result in the exact same outcome.
 a visible flicker). To enable it, pass the `reload_on_reset=True` keyword
 argument to the QwopEnv constructor.
 
-With this reset mode, the environment is satisfying the Markov property,
+With this reset mode, the environment becomes fully deterministic,
 given the step number is part of the state: an action `a` at state `s` will
-always yield one specific state `s+1`.
+always yield exactly one specific state `s+1`.
 
 ## Troubleshooting
 
