@@ -312,7 +312,7 @@ if __name__ == "__main__":
         manual_client=True,
         seed=0,
         browser="/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-        driver="/Users/simo/Projects/qwop/vendor/chromedriver",
+        driver="/Users/simo/Projects/qwop-gym/vendor/chromedriver",
     )
 
     with ws.sock:

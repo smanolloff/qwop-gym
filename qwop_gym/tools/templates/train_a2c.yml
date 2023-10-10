@@ -11,7 +11,7 @@ model_load_file: ~
 # [string] Directory template to save the trained model, metadata and
 # tensorboard logs. If the template contains {run_id} or {seed} placeholders,
 # they will be replaced with the corresponding runtime values.
-out_dir_template: "data/PPO-{run_id}"
+out_dir_template: "data/SAC-{run_id}"
 
 # [bool] Log tensorboard data
 log_tensorboard: true
@@ -20,28 +20,28 @@ log_tensorboard: true
 total_timesteps: 100_000
 
 # [int] (optional) Force env termination on the Nth step of an episode
-max_episode_steps: 5000
+max_episode_steps: 1000
 
 # [int] Number of times the model will be saved during training
 # Example: 5 means save at 20%, 40%, 60%, 80% and 100% progress
 n_checkpoints: 5
 
-# PPO algorithm parameters (used only if `model_load_file` is blank)
-# https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html#stable_baselines3.ppo.PPO
+# A2C algorithm parameters (used only if `model_load_file` is blank)
+# https://stable-baselines3.readthedocs.io/en/master/modules/a2c.html#stable_baselines3.a2c.A2C
 learner_kwargs:
   policy: "MlpPolicy"
-  use_sde: false
-  sde_sample_freq: 4
-  n_steps: 2048
-  batch_size: 32
-  n_epochs: 10
-  gamma: 0.9
-  gae_lambda: 0.98
-  clip_range: 0.4
-  normalize_advantage: true
-  ent_coef: 0.001
+  n_steps: 5
+  gamma: 0.99
+  gae_lambda: 1.0
+  ent_coef: 0.0
   vf_coef: 0.5
-  max_grad_norm: 3
+  max_grad_norm: 0.5
+  rms_prop_eps: 0.00001
+  use_rms_prop: true
+  use_sde: false
+  sde_sample_freq: -1
+  normalize_advantage: false
+  stats_window_size: 100
 
 # (string) Schedule for the learning_rate as a function of the progress remaining.
 # Format is one of:
@@ -65,7 +65,7 @@ learner_kwargs:
 #     will start with lr=0.03 and exponentially lower it to lr=0.0001 during
 #     the first 50% of training in 5 steps (ie. at 90%, 80%, 70%, 60% and 50%)
 #
-learner_lr_schedule: "const_0.001"
+learner_lr_schedule: "const_0.0007"
 
 
 # Env parameters

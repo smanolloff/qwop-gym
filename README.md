@@ -126,7 +126,7 @@ python qwop-gym spectate
 git checkout gym-compat
 
 # Note that python-3.10 is required, see notes in requirements.txt
-pip install -r requirements.txt
+pip install .
 
 # Patch the game again as this branch works with different paths
 curl -sL https://www.foddy.net/QWOP.min.js | python -m src.game.patcher
@@ -195,7 +195,7 @@ _low torso height_, _vertical movement_, etc.
 allow only the "useful" 8 key combinations.
 * great results (fast, human-like running) achieved by RL agents trained
 entirely through self-play, without pre-recorded expert demonstrations
-* qwop-gym already contains scripts for training with 6 different algorithms
+* qwop-gym already contains scripts for training with 8 different algorithms
 and adding more to the list is simple - this makes it suitable for exploring
 and/or benchmarking a variety of RL algorithms.
 * qwop-gym uses reliable open-source implementations of RL algorithms in

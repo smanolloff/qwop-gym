@@ -22,6 +22,9 @@ from gymnasium.wrappers import TimeLimit
 import os
 import time
 import math
+import stable_baselines3
+import sb3_contrib
+
 
 from . import common
 
@@ -48,18 +51,16 @@ def init_model(
     alg = None
 
     match learner_cls:
+        case "A2C":
+            alg = stable_baselines3.A2C
         case "PPO":
-            from stable_baselines3 import PPO
-
-            alg = PPO
+            alg = stable_baselines3.PPO
         case "DQN":
-            from stable_baselines3 import DQN
-
-            alg = DQN
+            alg = stable_baselines3.DQN
         case "QRDQN":
-            from sb3_contrib import QRDQN
-
-            alg = QRDQN
+            alg = sb3_contrib.QRDQN
+        case "RPPO":
+            alg = sb3_contrib.RecurrentPPO
         case _:
             raise Exception("Unexpected learner_cls: %s" % learner_cls)
 

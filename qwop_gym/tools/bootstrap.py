@@ -19,12 +19,14 @@ import os
 
 
 class Writer:
-    def __init__(self, srcdir, dstdir, overwrite=None):
+    def __init__(self, srcdir, dstdir, overwrite=None, browser_path=None, driver_path=None):
         os.makedirs(dstdir, exist_ok=True)
 
         self.srcdir = srcdir
         self.dstdir = dstdir
         self.overwrite = overwrite
+        self.browser_path = browser_path
+        self.driver_path = driver_path
 
     def maybe_write(self, fname, callback=None):
         srcfile = self.srcdir / fname
@@ -66,48 +68,59 @@ class Writer:
                 case _:
                     print('Please answer with "y", "n", "all" or "none".')
 
+    def replace_paths(self, content):
+        if self.browser_path is None:
+            print("Path to chrome-based browser: ", end="")
+            self.browser_path = input()
 
-def get_driver_and_browser_paths(content):
-    print("Path to chrome-based browser: ", end="")
-    content = content.replace("/path/to/browser", input())
+        content = content.replace("/path/to/browser", self.browser_path)
 
-    print("Path to chromedriver: ", end="")
-    content = content.replace("/path/to/chromedriver", input())
+        if self.driver_path is None:
+            print("Path to chromedriver: ", end="")
+            self.driver_path = input()
 
-    return content
+        content = content.replace("/path/to/chromedriver", self.driver_path)
+
+        return content
 
 
 def bootstrap():
     print("Performing initial setup...")
 
-    w = Writer(
+    w1 = Writer(
         pathlib.Path(__file__).parent / "templates",
         pathlib.Path("config"),
     )
 
-    w.maybe_write("env.yml", get_driver_and_browser_paths)
-    w.maybe_write("benchmark.yml")
-    w.maybe_write("play.yml")
-    w.maybe_write("record.yml")
-    w.maybe_write("replay.yml")
-    w.maybe_write("spectate.yml")
-    w.maybe_write("train_airl.yml")
-    w.maybe_write("train_bc.yml")
-    w.maybe_write("train_dqn.yml")
-    w.maybe_write("train_gail.yml")
-    w.maybe_write("train_ppo.yml")
-    w.maybe_write("train_qrdqn.yml")
+    w1.maybe_write("env.yml", w1.replace_paths)
+    w1.maybe_write("benchmark.yml")
+    w1.maybe_write("play.yml")
+    w1.maybe_write("record.yml")
+    w1.maybe_write("replay.yml")
+    w1.maybe_write("spectate.yml")
+    w1.maybe_write("train_a2c.yml")
+    w1.maybe_write("train_airl.yml")
+    w1.maybe_write("train_bc.yml")
+    w1.maybe_write("train_dqn.yml")
+    w1.maybe_write("train_gail.yml")
+    w1.maybe_write("train_ppo.yml")
+    w1.maybe_write("train_qrdqn.yml")
+    w1.maybe_write("train_rppo.yml")
 
-    w = Writer(
+    w2 = Writer(
         pathlib.Path(__file__).parent / "templates" / "wandb",
         pathlib.Path("config") / "wandb",
-        w.overwrite,
+        w1.overwrite,
+        browser_path=w1.browser_path,
+        driver_path=w1.driver_path
     )
 
-    w.maybe_write("dqn.yml")
-    w.maybe_write("gail.yml")
-    w.maybe_write("ppo.yml")
-    w.maybe_write("qrdqn.yml")
+    w2.maybe_write("a2c.yml", w2.replace_paths)
+    w2.maybe_write("dqn.yml", w2.replace_paths)
+    w2.maybe_write("gail.yml", w2.replace_paths)
+    w2.maybe_write("ppo.yml", w2.replace_paths)
+    w2.maybe_write("qrdqn.yml", w2.replace_paths)
+    w2.maybe_write("rppo.yml", w2.replace_paths)
 
     gamefile = (
         pathlib.Path(__file__).parents[1] / "envs" / "v1" / "game" / "QWOP.min.js"

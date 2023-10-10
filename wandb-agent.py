@@ -14,7 +14,8 @@
 # limitations under the License.
 # =============================================================================
 
-import importlib
+from qwop_gym.tools.main import run
+
 import string
 import random
 import sys
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         out_dir=out_dir,
     )
 
-    importlib.import_module("qwop-gym").run(action, config)
+    run(action, config)
 
     wandb.save(f"{out_dir}/model.zip", base_path=out_dir)
     wandb.save(f"{out_dir}/metadata.yml", base_path=out_dir)
