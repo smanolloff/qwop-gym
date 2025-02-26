@@ -23,6 +23,7 @@ import websockets
 import sys
 import os
 import urllib.parse
+import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 
@@ -216,7 +217,7 @@ curl -sL https://www.foddy.net/QWOP.min.js | qwop-gym patch
             asyncio.create_task(self._launch_browser())
 
     async def _register_peer(self, ws, peer_id):
-        ua = ws.request_headers.get("user-agent")
+        ua = ws.request.headers.get("user-agent")
 
         match peer_id:
             case WSProto.REG_JS:
@@ -275,7 +276,7 @@ curl -sL https://www.foddy.net/QWOP.min.js | qwop-gym patch
             self.logger.error(str(e))
 
     async def _handler(self, ws):
-        ua = ws.request_headers.get("user-agent")
+        ua = ws.request.headers.get("user-agent")
         self.logger.info("Connection from: %s" % ua)
 
         async for data in ws:

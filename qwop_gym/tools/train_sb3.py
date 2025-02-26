@@ -20,7 +20,6 @@ from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.utils import safe_mean
 from gymnasium.wrappers import TimeLimit
 import os
-import time
 import math
 import stable_baselines3
 import sb3_contrib
@@ -38,7 +37,7 @@ class LogCallback(BaseCallback):
             self.model.logger.record(f"user/{k}", v)
         return True
 
-    on_step = _on_step  # Fixes a bug with the latest version of SB3.
+    on_step = _on_step  # Fixes a bug with stable-baselines3 in version 2.2.1
 
 
 def init_model(

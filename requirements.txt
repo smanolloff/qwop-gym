@@ -1,9 +1,9 @@
 gymnasium >= 0.29.1
-websockets >= 11.0.3
+websockets ~= 15.0
 numpy >= 1.24.3
 selenium >= 4.11.2
 pillow >= 10.0.1
-stable_baselines3 == 2.1.0
+stable_baselines3 == 2.2.1
 sb3-contrib == 2.1.0
 tensorboard
 tensorflow

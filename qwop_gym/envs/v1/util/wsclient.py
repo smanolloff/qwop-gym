@@ -16,7 +16,6 @@
 
 import numpy as np
 import time
-import sys
 import struct
 from websockets.sync import client
 from .wsproto import WSProto, to_bytes
