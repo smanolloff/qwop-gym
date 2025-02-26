@@ -36,6 +36,9 @@ class LogCallback(BaseCallback):
         for k in common.INFO_KEYS:
             v = safe_mean([ep_info[k] for ep_info in self.model.ep_info_buffer])
             self.model.logger.record(f"user/{k}", v)
+        return True
+
+    on_step = _on_step  # Fixes a bug with the latest version of SB3.
 
 
 def init_model(
